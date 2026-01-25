@@ -9,6 +9,14 @@ import { useVatsimData } from '../hooks/useVatsimData';
 import markerIconSvg from '../../public/marker-icon.svg';
 import './WorldMap.css';
 
+interface FlightPlan {
+  aircraft?: string;
+  departure?: string;
+  arrival?: string;
+  route?: string;
+  remarks?: string;
+}
+
 interface Pilot {
   cid: number
   name: string
@@ -18,6 +26,7 @@ interface Pilot {
   altitude: number
   groundspeed: number
   heading?: number
+  flight_plan?: FlightPlan
 }
 
 // Create custom icon using SVG from public folder
@@ -42,7 +51,7 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
 
     // Create cluster group only once
     if (!markerClusterGroupRef.current) {
-      markerClusterGroupRef.current = (L.markerClusterGroup as any)({
+      markerClusterGroupRef.current = (L as unknown as { markerClusterGroup: (options: Record<string, unknown>) => L.MarkerClusterGroup }).markerClusterGroup({
         disableClusteringAtZoom: 13,
         maxClusterRadius: 80,
       });
@@ -69,14 +78,14 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
           <p><strong>Speed:</strong> ${pilot.groundspeed} kts</p>
           <p><strong>Position:</strong> ${pilot.latitude.toFixed(4)}, ${pilot.longitude.toFixed(4)}</p>
           ${
-            (pilot as any).flight_plan
+            pilot.flight_plan
               ? `
             <hr />
-            <p><strong>Aircraft:</strong> ${(pilot as any).flight_plan.aircraft}</p>
-            <p><strong>Departure:</strong> ${(pilot as any).flight_plan.departure}</p>
-            <p><strong>Arrival:</strong> ${(pilot as any).flight_plan.arrival}</p>
-            <p><strong>Route:</strong> ${(pilot as any).flight_plan.route || 'N/A'}</p>
-            <p><strong>Remarks:</strong> ${(pilot as any).flight_plan.remarks || 'N/A'}</p>
+            <p><strong>Aircraft:</strong> ${pilot.flight_plan.aircraft || 'N/A'}</p>
+            <p><strong>Departure:</strong> ${pilot.flight_plan.departure || 'N/A'}</p>
+            <p><strong>Arrival:</strong> ${pilot.flight_plan.arrival || 'N/A'}</p>
+            <p><strong>Route:</strong> ${pilot.flight_plan.route || 'N/A'}</p>
+            <p><strong>Remarks:</strong> ${pilot.flight_plan.remarks || 'N/A'}</p>
           `
               : ''
           }
@@ -138,53 +147,75 @@ export function WorldMap() {
   const defaultCenter: [number, number] = [20, 0];
   const defaultZoom = 2;
   const { data, error } = useVatsimData();
-  const [pilots, setPilots] = useState<Pilot[]>([]);
-  const [center, setCenter] = useState<[number, number]>(defaultCenter);
-  const [zoom, setZoom] = useState(defaultZoom);
-  const [updateTimestamp, setUpdateTimestamp] = useState<string>('');
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Load map position and zoom from localStorage on component mount
-  useEffect(() => {
-    const savedMapState = localStorage.getItem('vatsim_map_state');
-    if (savedMapState) {
-      try {
-        const { center: savedCenter, zoom: savedZoom, updateTimestamp: savedUpdateTimestamp } = JSON.parse(savedMapState);
-        setCenter(savedCenter);
-        setZoom(savedZoom);
-        setUpdateTimestamp(savedUpdateTimestamp || '');
-      } catch (error) {
-        console.error('Error parsing saved map state:', error);
-      }
-    }
-    setTimeout(() => setIsInitialized(true), 500);
-  }, []);
-
-  // Load pilots from localStorage on component mount
-  useEffect(() => {
+  
+  // Initialize state from localStorage using initializer functions
+  const storedPilotsInit = (() => {
     const storedPilots = localStorage.getItem('vatsim_pilots');
     if (storedPilots) {
       try {
-        setPilots(JSON.parse(storedPilots));
+        return JSON.parse(storedPilots);
       } catch (error) {
         console.error('Error parsing localStorage pilots:', error);
       }
     }
+    return [];
+  })();
+  
+  // Use pilots directly from data when available, otherwise use cached ones
+  const pilots = data?.pilots && data.pilots.length > 0 ? data.pilots : storedPilotsInit;
+  
+  const center = (() => {
+    const savedMapState = localStorage.getItem('vatsim_map_state');
+    if (savedMapState) {
+      try {
+        const { center: savedCenter } = JSON.parse(savedMapState);
+        return savedCenter;
+      } catch (error) {
+        console.error('Error parsing saved map state:', error);
+      }
+    }
+    return defaultCenter;
+  })();
+  
+  const zoom = (() => {
+    const savedMapState = localStorage.getItem('vatsim_map_state');
+    if (savedMapState) {
+      try {
+        const { zoom: savedZoom } = JSON.parse(savedMapState);
+        return savedZoom;
+      } catch (error) {
+        console.error('Error parsing saved map state:', error);
+      }
+    }
+    return defaultZoom;
+  })();
+  
+  const updateTimestamp = (() => {
+    const savedMapState = localStorage.getItem('vatsim_map_state');
+    if (savedMapState) {
+      try {
+        const { updateTimestamp: savedUpdateTimestamp } = JSON.parse(savedMapState);
+        return savedUpdateTimestamp || '';
+      } catch (error) {
+        console.error('Error parsing saved map state:', error);
+      }
+    }
+    return data?.general?.update_timestamp || '';
+  })();
+  
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize after mount
+  useEffect(() => {
+    setTimeout(() => setIsInitialized(true), 500);
   }, []);
 
-  // Update pilots when data is fetched and save to localStorage
+  // Save pilots to localStorage when data is fetched
   useEffect(() => {
     if (data?.pilots && data.pilots.length > 0) {
-      setPilots(data.pilots);
       localStorage.setItem('vatsim_pilots', JSON.stringify(data.pilots));
     }
-  }, [data]);
-
-  useEffect(() => {
-    if (data?.general?.update_timestamp) {
-      setUpdateTimestamp(data.general.update_timestamp);
-    }
-  }, [data]);
+  }, [data?.pilots]);
 
   if (error) {
     console.error('Error fetching VATSIM data:', error);

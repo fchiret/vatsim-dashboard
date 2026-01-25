@@ -7,7 +7,7 @@ export function useUpdateCountdown() {
   const [nextUpdateIn, setNextUpdateIn] = useState<string>('--:--');
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
   const lastSecondRef = useRef<number>(-1);
-  const fetchTimeRef = useRef<number>(Date.now());
+  const fetchTimeRef = useRef<number>(0);
   const { data } = useVatsimData();
 
   const updateCountdown = useCallback((fetchTime: number, updateTimestamp?: string) => {
@@ -43,7 +43,7 @@ export function useUpdateCountdown() {
       fetchTimeRef.current = Date.now(); // Mark exact moment data arrived
       updateCountdown(fetchTimeRef.current, data.general.update_timestamp);
     }
-  }, [data?.general?.update_timestamp]);
+  }, [data?.general?.update_timestamp, updateCountdown]);
 
   // Update countdown every second
   useEffect(() => {
@@ -53,6 +53,13 @@ export function useUpdateCountdown() {
 
     return () => clearInterval(interval);
   }, [data?.general?.update_timestamp, updateCountdown]);
+
+  // Initialize fetchTimeRef on mount
+  useEffect(() => {
+    if (fetchTimeRef.current === 0) {
+      fetchTimeRef.current = Date.now();
+    }
+  }, []);
 
   return { nextUpdateIn, lastUpdateTime };
 }
