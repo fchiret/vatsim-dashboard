@@ -13,24 +13,21 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
-.footer {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  min-width: 310px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 10px 15px;
-  border-radius: 5px;
-  font-size: 14px;
+.footer-stats {
   z-index: 1000;
-  font-family: monospace;
-  line-height: 1.6;
+  min-width: 310px;
 }
 
-.footer span {
-  position: absolute;
-  right: 10px;
-  color: #4CAF50;
+.leaflet-popup-content-wrapper {
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: white;
   font-weight: bold;
 }
+

@@ -7,6 +7,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { useVatsimData } from '../hooks/useVatsimData';
 import markerIconSvg from '../../public/marker-icon.svg';
+import { generatePilotPopupContent } from '../utils/pilotPopupContent';
 import './WorldMap.css';
 
 interface FlightPlan {
@@ -69,30 +70,7 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
         icon: createPilotIcon(pilot.heading || 0),
       });
 
-      const popupContent = `
-        <div style="max-width: 500px; font-size: 12px;">
-          <p><strong>Callsign:</strong> ${pilot.callsign}</p>
-          <p><strong>Pilot:</strong> ${pilot.name}</p>
-          <p><strong>Heading:</strong> ${pilot.heading || 'N/A'}°</p>
-          <p><strong>Altitude:</strong> ${pilot.altitude} ft</p>
-          <p><strong>Speed:</strong> ${pilot.groundspeed} kts</p>
-          <p><strong>Position:</strong> ${pilot.latitude.toFixed(4)}, ${pilot.longitude.toFixed(4)}</p>
-          ${
-            pilot.flight_plan
-              ? `
-            <hr />
-            <p><strong>Aircraft:</strong> ${pilot.flight_plan.aircraft || 'N/A'}</p>
-            <p><strong>Departure:</strong> ${pilot.flight_plan.departure || 'N/A'}</p>
-            <p><strong>Arrival:</strong> ${pilot.flight_plan.arrival || 'N/A'}</p>
-            <p><strong>Route:</strong> ${pilot.flight_plan.route || 'N/A'}</p>
-            <p><strong>Remarks:</strong> ${pilot.flight_plan.remarks || 'N/A'}</p>
-          `
-              : ''
-          }
-        </div>
-      `
-
-      marker.bindPopup(popupContent);
+      marker.bindPopup(generatePilotPopupContent(pilot));
       group.addLayer(marker);
     });
   }, [pilots, map]);

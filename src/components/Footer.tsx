@@ -6,15 +6,22 @@ function Footer() {
   const { nextUpdateIn, lastUpdateTime } = useUpdateCountdown();
   const { uniqueUsers } = useUniqueUsers();
 
-  // Add
-
   return (
-    <div className="footer">
-      Dernière mise à jour: <span>{lastUpdateTime}</span>
-      <br />
-      Prochaine mise à jour dans: <span>{nextUpdateIn}</span>
-      <br />
-      Utilisateurs uniques: <span>{uniqueUsers.toLocaleString()}</span>
+    <div className="footer-stats position-absolute bottom-0 start-0 m-3 bg-dark bg-opacity-75 text-white rounded p-3 shadow">
+      <div className="d-flex flex-column gap-2 small">
+        <div className="d-flex justify-content-between align-items-center">
+          <span className="text-white">Last data update:</span>
+          <span className="badge rounded-pill bg-light text-dark fw-bold">{lastUpdateTime}</span>
+        </div>
+        <div className="d-flex justify-content-between align-items-center">
+          <span className="text-white">Next data update:</span>
+          <span className="badge rounded-pill bg-warning text-dark fw-bold">{nextUpdateIn}</span>
+        </div>
+        <div className="d-flex justify-content-between align-items-center">
+          <span className="text-white">Unique users:</span>
+          <span className="badge rounded-pill bg-success text-light fw-bold">{uniqueUsers.toLocaleString()}</span>
+        </div>
+      </div>
     </div>
   );
 }
