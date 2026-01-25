@@ -7,21 +7,21 @@ function Footer() {
   const { uniqueUsers } = useUniqueUsers();
 
   return (
-    <div className="footer-stats position-absolute bottom-0 start-0 m-3 bg-dark bg-opacity-75 text-white rounded p-3 shadow">
-      <div className="d-flex flex-column gap-2 small">
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="text-white">Last data update:</span>
-          <span className="badge rounded-pill bg-light text-dark fw-bold">{lastUpdateTime}</span>
-        </div>
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="text-white">Next data update:</span>
-          <span className="badge rounded-pill bg-warning text-dark fw-bold">{nextUpdateIn}</span>
-        </div>
-        <div className="d-flex justify-content-between align-items-center">
-          <span className="text-white">Unique users:</span>
-          <span className="badge rounded-pill bg-success text-light fw-bold">{uniqueUsers.toLocaleString()}</span>
-        </div>
-      </div>
+    <div className="footer-stats position-absolute bottom-0 start-0 m-3 bg-dark bg-opacity-75 text-white rounded shadow" style={{ minWidth: '230px' }}>
+      <ul className="list-group list-group-flush small">
+        <li className="list-group-item d-flex justify-content-between align-items-center px-3 py-2 bg-transparent text-white border-secondary">
+          <span className="text-white-60">Last data update:</span>
+          <span className="badge bg-light text-dark fw-bold">{lastUpdateTime}</span>
+        </li>
+        <li className="list-group-item d-flex justify-content-between align-items-center px-3 py-2 bg-transparent text-white border-secondary">
+          <span className="text-white-60">Next data update:</span>
+          <span className="badge bg-warning text-dark fw-bold">{nextUpdateIn}</span>
+        </li>
+        <li className="list-group-item d-flex justify-content-between align-items-center px-3 py-2 bg-transparent text-white border-secondary">
+          <span className="text-white-60">Unique users:</span>
+          <span className="badge bg-success fw-bold">{uniqueUsers.toLocaleString()}</span>
+        </li>
+      </ul>
     </div>
   );
 }

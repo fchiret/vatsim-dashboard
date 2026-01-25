@@ -18,6 +18,8 @@ interface Pilot {
   flight_plan?: FlightPlan;
 }
 
+const NA = 'N/A';
+
 export const generatePilotPopupContent = (pilot: Pilot): string => {
   return `
     <div class="card border-0" style="min-width: 300px;">
@@ -32,7 +34,7 @@ export const generatePilotPopupContent = (pilot: Pilot): string => {
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
             <span class="text-muted">Heading</span>
-            <span class="badge bg-info">${pilot.heading || 'N/A'}°</span>
+            <span class="badge bg-info">${pilot.heading || NA}°</span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
             <span class="text-muted">Altitude</span>
@@ -55,11 +57,11 @@ export const generatePilotPopupContent = (pilot: Pilot): string => {
             <ul class="list-group list-group-flush small">
               <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
                 <span class="text-muted">Aircraft</span>
-                <strong>${pilot.flight_plan.aircraft || 'N/A'}</strong>
+                <strong>${pilot.flight_plan.aircraft || NA}</strong>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
                 <span class="text-muted">Route</span>
-                <strong>${pilot.flight_plan.departure || 'N/A'} → ${pilot.flight_plan.arrival || 'N/A'}</strong>
+                <strong>${pilot.flight_plan.departure || NA} → ${pilot.flight_plan.arrival || NA}</strong>
               </li>
               ${pilot.flight_plan.route ? `
               <li class="list-group-item px-2 py-1">
