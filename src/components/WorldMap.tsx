@@ -7,11 +7,14 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { useVatsimData } from '../hooks/useVatsimData';
 import markerIconSvg from '../../public/marker-icon.svg';
+import markerIconSelectedSvg from '../../public/marker-icon-selected.svg';
 import { generatePilotPopupContent } from '../utils/pilotPopupContent';
+import { useAircraft } from '../contexts/AircraftContext';
 import './WorldMap.css';
 
 interface FlightPlan {
   aircraft?: string;
+  aircraft_short?: string;
   departure?: string;
   arrival?: string;
   route?: string;
@@ -31,10 +34,11 @@ interface Pilot {
 }
 
 // Create custom icon using SVG from public folder
-const createPilotIcon = (heading: number = 0) => {
+const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
+  const iconSvg = isSelected ? markerIconSelectedSvg : markerIconSvg;
   return L.divIcon({
     html: `<div class="pilot-marker" style="transform: rotate(${heading}deg)">
-      <img src="${markerIconSvg}" alt="pilot" width="32" height="32" />
+      <img src="${iconSvg}" alt="pilot" width="32" height="32" />
     </div>`,
     className: 'pilot-marker-container',
     iconSize: [32, 32],
@@ -46,6 +50,7 @@ const createPilotIcon = (heading: number = 0) => {
 function MapContent({ pilots }: { pilots: Pilot[] }) {
   const map = useMap();
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const { selectedAircraft } = useAircraft();
 
   useEffect(() => {
     if (!map || !pilots.length) return;
@@ -55,6 +60,29 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
       markerClusterGroupRef.current = (L as unknown as { markerClusterGroup: (options: Record<string, unknown>) => L.MarkerClusterGroup }).markerClusterGroup({
         disableClusteringAtZoom: 13,
         maxClusterRadius: 80,
+        iconCreateFunction: (cluster: any) => {
+          const markers = cluster.getAllChildMarkers();
+          const hasSelected = markers.some((marker: any) => marker.options.isSelected);
+          const count = markers.length;
+          
+          // Determine cluster size class based on count
+          let sizeClass = 'marker-cluster-small';
+          if (count >= 100) {
+            sizeClass = 'marker-cluster-large';
+          } else if (count >= 10) {
+            sizeClass = 'marker-cluster-medium';
+          }
+          
+          const className = hasSelected 
+            ? `marker-cluster ${sizeClass} marker-cluster-selected` 
+            : `marker-cluster ${sizeClass}`;
+          
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: className,
+            iconSize: L.point(40, 40),
+          });
+        },
       });
       map.addLayer(markerClusterGroupRef.current as L.Layer);
     }
@@ -66,14 +94,16 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
 
     // Add markers to cluster group
     pilots.forEach((pilot) => {
+      const isSelected = selectedAircraft && pilot.flight_plan?.aircraft_short === selectedAircraft;
       const marker = L.marker([pilot.latitude, pilot.longitude], {
-        icon: createPilotIcon(pilot.heading || 0),
-      });
+        icon: createPilotIcon(pilot.heading || 0, isSelected || false),
+        isSelected: isSelected,
+      } as any);
 
       marker.bindPopup(generatePilotPopupContent(pilot));
       group.addLayer(marker);
     });
-  }, [pilots, map]);
+  }, [pilots, map, selectedAircraft]);
 
   return null;
 }
@@ -203,6 +233,7 @@ export function WorldMap() {
     <MapContainer
       center={defaultCenter}
       zoom={defaultZoom}
+      scrollWheelZoom={false} // TODO: remove
       style={{ height: '100vh', width: '100%' }}
     >
       <TileLayer

@@ -18,6 +18,21 @@
   min-width: 310px;
 }
 
+.marker-cluster-small.marker-cluster-selected,
+.marker-cluster-medium.marker-cluster-selected,
+.marker-cluster-large.marker-cluster-selected,
+.marker-cluster-small.marker-cluster-selected div,
+.marker-cluster-medium.marker-cluster-selected div,
+.marker-cluster-large.marker-cluster-selected div {
+  background-color: rgba(255, 69, 21, 0.6) !important;
+}
+
+.marker-cluster-small.marker-cluster-selected div span,
+.marker-cluster-medium.marker-cluster-selected div span,
+.marker-cluster-large.marker-cluster-selected div span {
+  color: white;
+}
+
 .leaflet-popup-content-wrapper {
   padding: 0;
 }

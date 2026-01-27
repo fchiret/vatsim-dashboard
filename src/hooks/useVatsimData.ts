@@ -12,6 +12,7 @@ export interface Pilot {
   flight_plan?: {
     flight_rules: string
     aircraft: string
+    aircraft_short: string
     departure: string
     arrival: string
     alternate: string
