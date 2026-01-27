@@ -33,6 +33,11 @@ interface Pilot {
   flight_plan?: FlightPlan
 }
 
+// Extend Leaflet marker options to include our custom isSelected flag
+interface SelectedMarkerOptions extends L.MarkerOptions {
+  isSelected: boolean;
+}
+
 // Create custom icon using SVG from public folder
 const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
   const iconSvg = isSelected ? markerIconSelectedSvg : markerIconSvg;
@@ -62,7 +67,9 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
         maxClusterRadius: 80,
         iconCreateFunction: (cluster: any) => {
           const markers = cluster.getAllChildMarkers();
-          const hasSelected = markers.some((marker: any) => marker.options.isSelected);
+          const hasSelected = markers.some((marker: L.Marker<SelectedMarkerOptions>) => 
+            (marker.options as SelectedMarkerOptions).isSelected
+          );
           const count = markers.length;
           
           // Determine cluster size class based on count
@@ -94,11 +101,12 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
 
     // Add markers to cluster group
     pilots.forEach((pilot) => {
-      const isSelected = selectedAircraft && pilot.flight_plan?.aircraft_short === selectedAircraft;
-      const marker = L.marker([pilot.latitude, pilot.longitude], {
-        icon: createPilotIcon(pilot.heading || 0, isSelected || false),
+      // Ensure isSelected is always a strict boolean
+      const isSelected = selectedAircraft != null && pilot.flight_plan?.aircraft_short === selectedAircraft;
+      const marker = L.marker<SelectedMarkerOptions>([pilot.latitude, pilot.longitude], {
+        icon: createPilotIcon(pilot.heading || 0, isSelected),
         isSelected: isSelected,
-      } as any);
+      } as SelectedMarkerOptions);
 
       marker.bindPopup(generatePilotPopupContent(pilot));
       group.addLayer(marker);
@@ -222,6 +230,8 @@ export function WorldMap() {
   useEffect(() => {
     if (data?.pilots && data.pilots.length > 0) {
       localStorage.setItem('vatsim_pilots', JSON.stringify(data.pilots));
+      // Notify other components that pilots data has been updated
+      window.dispatchEvent(new Event('vatsim-pilots-updated'));
     }
   }, [data?.pilots]);
 

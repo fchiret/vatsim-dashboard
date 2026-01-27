@@ -35,9 +35,17 @@ export function AircraftProvider({ children }: { children: ReactNode }) {
     // Update on mount
     updateAircraftList();
 
-    // Update when pilots data changes in localStorage
-    const interval = setInterval(updateAircraftList, 60000); // Check every minute
-    return () => clearInterval(interval);
+    // Listen to custom event for immediate updates
+    const handlePilotsUpdate = () => updateAircraftList();
+    window.addEventListener('vatsim-pilots-updated', handlePilotsUpdate);
+
+    // Also poll periodically as fallback
+    const interval = setInterval(updateAircraftList, 60000);
+    
+    return () => {
+      window.removeEventListener('vatsim-pilots-updated', handlePilotsUpdate);
+      clearInterval(interval);
+    };
   }, []);
 
   return (
