@@ -29,7 +29,7 @@ function Footer() {
           <span className="badge bg-success fw-bold">{uniqueUsers.toLocaleString()}</span>
         </li>
         <li className="list-group-item px-3 py-2 bg-transparent text-white border-secondary">
-          <label htmlFor="aircraft-select" className="text-white-60 d-block mb-2">Filter by aircraft model:</label>
+          <label htmlFor="aircraft-select" className="text-white-60 d-block mb-2">Highlight aircraft model:</label>
           <select
             id="aircraft-select"
             className="form-select form-select-sm bg-dark text-white border-secondary"
