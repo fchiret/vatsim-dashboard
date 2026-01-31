@@ -12,9 +12,12 @@ npm run build || {
   exit 1
 }
 
-# TODO: Add tests when available
-# echo "🧪 Running tests..."
-# npm test || exit 1
+# Run tests
+echo "🧪 Running tests..."
+npm run test:run || {
+  echo "❌ Tests failed. Please fix failing tests before committing."
+  exit 1
+}
 
 # Check if CHANGELOG was updated (skip for release commits)
 COMMIT_MSG_FILE=".git/COMMIT_EDITMSG"

@@ -24,6 +24,7 @@ build
 # Testing
 coverage
 .nyc_output
+.vitest/
 
 # Editor directories and files
 .vscode/*
