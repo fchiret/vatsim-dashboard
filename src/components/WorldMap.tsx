@@ -6,32 +6,12 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { useVatsimData } from '../hooks/useVatsimData';
+import type { Pilot, PilotRating } from '../hooks/useVatsimData';
 import markerIconSvg from '../../public/marker-icon.svg';
 import markerIconSelectedSvg from '../../public/marker-icon-selected.svg';
 import { generatePilotPopupContent } from '../utils/pilotPopupContent';
 import { useAircraft } from '../contexts/AircraftContext';
 import './WorldMap.css';
-
-interface FlightPlan {
-  aircraft?: string;
-  aircraft_short?: string;
-  departure?: string;
-  arrival?: string;
-  route?: string;
-  remarks?: string;
-}
-
-interface Pilot {
-  cid: number
-  name: string
-  callsign: string
-  latitude: number
-  longitude: number
-  altitude: number
-  groundspeed: number
-  heading?: number
-  flight_plan?: FlightPlan
-}
 
 // Extend Leaflet marker options to include our custom isSelected flag
 interface SelectedMarkerOptions extends L.MarkerOptions {
@@ -52,7 +32,7 @@ const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
   });
 };
 
-function MapContent({ pilots }: { pilots: Pilot[] }) {
+function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: PilotRating[] }) {
   const map = useMap();
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const { selectedAircraft } = useAircraft();
@@ -108,10 +88,10 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
         isSelected: isSelected,
       } as SelectedMarkerOptions);
 
-      marker.bindPopup(generatePilotPopupContent(pilot));
+      marker.bindPopup(generatePilotPopupContent(pilot, pilotRatings));
       group.addLayer(marker);
     });
-  }, [pilots, map, selectedAircraft]);
+  }, [pilots, map, selectedAircraft, pilotRatings]);
 
   return null;
 }
@@ -250,7 +230,7 @@ export function WorldMap() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapContent pilots={pilots} />
+      <MapContent pilots={pilots} pilotRatings={data?.pilot_ratings} />
       <MapSetView center={center} zoom={zoom} />
       {isInitialized && <MapSaveState updateTimestamp={updateTimestamp} />}
     </MapContainer>

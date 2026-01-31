@@ -4,11 +4,14 @@ export interface Pilot {
   cid: number
   name: string
   callsign: string
+  server: string
   latitude: number
   longitude: number
   altitude: number
   groundspeed: number
+  transponder: string
   heading: number
+  pilot_rating: number
   flight_plan?: {
     flight_rules: string
     aircraft: string
@@ -26,8 +29,15 @@ export interface Pilot {
   }
 }
 
+export interface PilotRating {
+  id: number
+  short_name: string
+  long_name: string
+}
+
 interface VatsimData {
   pilots: Pilot[]
+  pilot_ratings: PilotRating[]
   controllers: Array<{
     cid: number
     name: string

@@ -1,26 +1,18 @@
-interface FlightPlan {
-  aircraft?: string;
-  departure?: string;
-  arrival?: string;
-  route?: string;
-  remarks?: string;
-}
-
-interface Pilot {
-  cid: number;
-  name: string;
-  callsign: string;
-  latitude: number;
-  longitude: number;
-  altitude: number;
-  groundspeed: number;
-  heading?: number;
-  flight_plan?: FlightPlan;
-}
+import type { Pilot, PilotRating } from '../hooks/useVatsimData';
 
 const NA = 'N/A';
 
-export const generatePilotPopupContent = (pilot: Pilot): string => {
+const getPilotRating = (
+  ratingId: number | undefined,
+  ratings?: PilotRating[]
+): { short_name: string; long_name: string } | null => {
+  if (ratingId === undefined || !ratings || ratings.length === 0) return null;
+  return ratings.find(r => r.id === ratingId) || null;
+};
+
+export const generatePilotPopupContent = (pilot: Pilot, pilotRatings?: PilotRating[]): string => {
+  const rating = getPilotRating(pilot.pilot_rating, pilotRatings);
+  
   return `
     <div class="card border-0" style="min-width: 300px;">
       <div class="card-header bg-primary text-white py-2">
@@ -32,8 +24,10 @@ export const generatePilotPopupContent = (pilot: Pilot): string => {
             <span class="text-muted">Pilot</span>
             <strong>${pilot.name}</strong>
           </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
-            <span class="text-muted">Heading</span>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">            <span class="text-muted">Transponder</span>
+            <span class="badge bg-dark">${pilot.transponder || NA}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">            <span class="text-muted">Heading</span>
             <span class="badge bg-info">${pilot.heading || NA}°</span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
@@ -47,6 +41,14 @@ export const generatePilotPopupContent = (pilot: Pilot): string => {
           <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
             <span class="text-muted">Position</span>
             <small class="font-monospace">${pilot.latitude.toFixed(4)}, ${pilot.longitude.toFixed(4)}</small>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
+            <span class="text-muted">Rating</span>
+            <span class="badge bg-secondary" title="${rating?.short_name || NA}">${rating?.long_name || NA}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
+            <span class="text-muted">Server</span>
+            <span class="badge bg-secondary">${pilot.server || NA}</span>
           </li>
         </ul>
         ${
