@@ -1,0 +1,25 @@
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Conventional Commits regex
+PATTERN="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,}"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+  echo "❌ Invalid commit message format!"
+  echo ""
+  echo "Commit message must follow Conventional Commits:"
+  echo "  feat: add new feature"
+  echo "  fix: bug fix"
+  echo "  docs: documentation changes"
+  echo "  style: code formatting"
+  echo "  refactor: code refactoring"
+  echo "  test: add/update tests"
+  echo "  chore: maintenance tasks"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add aircraft route display"
+  echo "  fix: correct marker clustering issue"
+  echo "  docs: update README with new features"
+  echo ""
+  exit 1
+fi

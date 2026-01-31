@@ -65,7 +65,7 @@ function MapContent({ pilots }: { pilots: Pilot[] }) {
       markerClusterGroupRef.current = (L as unknown as { markerClusterGroup: (options: Record<string, unknown>) => L.MarkerClusterGroup }).markerClusterGroup({
         disableClusteringAtZoom: 13,
         maxClusterRadius: 80,
-        iconCreateFunction: (cluster: any) => {
+        iconCreateFunction: (cluster: L.MarkerCluster) => {
           const markers = cluster.getAllChildMarkers();
           const hasSelected = markers.some((marker: L.Marker<SelectedMarkerOptions>) => 
             (marker.options as SelectedMarkerOptions).isSelected

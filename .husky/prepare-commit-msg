@@ -1,0 +1,12 @@
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+
+# Ignore merge commits and other automated commits
+if [ "$COMMIT_SOURCE" != "" ]; then
+  exit 0
+fi
+
+# This hook can be used to prepare/modify the commit message
+# Currently, message validation is handled by commit-msg hook
+# and file checks are handled by pre-commit hook
+

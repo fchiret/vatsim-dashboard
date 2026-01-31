@@ -1,0 +1,37 @@
+# Run linter
+echo "🔍 Running linter..."
+npm run lint || {
+  echo "❌ Linting failed. Please fix errors before committing."
+  exit 1
+}
+
+# Run build to check TypeScript
+echo "🔨 Building project..."
+npm run build || {
+  echo "❌ Build failed. Please fix TypeScript errors before committing."
+  exit 1
+}
+
+# TODO: Add tests when available
+# echo "🧪 Running tests..."
+# npm test || exit 1
+
+# Check if CHANGELOG was updated (skip for release commits)
+COMMIT_MSG_FILE=".git/COMMIT_EDITMSG"
+if [ -f "$COMMIT_MSG_FILE" ] && grep -q "chore(release):" "$COMMIT_MSG_FILE" 2>/dev/null; then
+  # Skip check for release commits
+  :
+elif ! git diff --cached --name-only | grep -q "CHANGELOG.md"; then
+  # Check if commit message suggests a feature/fix
+  if git diff --cached --name-only | grep -qE "^src/"; then
+    echo ""
+    echo "⚠️  WARNING: CHANGELOG.md not updated."
+    echo "💡 Consider running 'npm run release' before committing features/fixes."
+    echo ""
+    echo "To bypass this check, commit with --no-verify"
+    # Uncomment next line to make it blocking:
+    # exit 1
+  fi
+fi
+
+echo "✅ Pre-commit checks passed!"

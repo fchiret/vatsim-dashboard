@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import type { Pilot } from '../hooks/useVatsimData';
 
 interface AircraftContextType {
   selectedAircraft: string | null;
@@ -20,7 +21,7 @@ export function AircraftProvider({ children }: { children: ReactNode }) {
         try {
           const pilots = JSON.parse(storedPilots);
           const aircrafts = new Set<string>();
-          pilots.forEach((pilot: any) => {
+          pilots.forEach((pilot: Pilot) => {
             if (pilot.flight_plan?.aircraft_short) {
               aircrafts.add(pilot.flight_plan.aircraft_short);
             }
@@ -55,6 +56,7 @@ export function AircraftProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAircraft() {
   const context = useContext(AircraftContext);
   if (context === undefined) {
