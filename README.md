@@ -60,27 +60,92 @@ Le projet inclut une configuration Docker optimisée :
 
 ## 🔧 Scripts disponibles
 
-- \`npm run dev\` - Démarre le serveur de développement
-- \`npm run build\` - Compile le projet pour la production
-- \`npm run preview\` - Preview du build de production
-- \`npm run lint\` - Vérifie le code avec ESLint
+- `npm run dev` - Démarre le serveur de développement
+- `npm run build` - Compile le projet pour la production
+- `npm run preview` - Preview du build de production
+- `npm run lint` - Vérifie le code avec ESLint
+- `npm test` - Lance les tests en mode watch
+- `npm run test:ui` - Interface web pour les tests
+- `npm run test:run` - Exécute les tests une fois
+- `npm run test:coverage` - Génère le rapport de couverture
+
+## 🧪 Tests
+
+Le projet utilise **Vitest** avec **React Testing Library** pour garantir la qualité du code.
+
+### Configuration
+
+- **Framework** : Vitest 4.x avec React Testing Library
+- **Environnement** : jsdom pour simuler le DOM
+- **Couverture** : v8 coverage provider (objectif : 80%+)
+- **CI/CD** : Hooks Git pré-commit pour validation automatique
+
+### Lancer les tests
+
+```bash
+# Mode watch (recommandé en développement)
+npm test
+
+# Interface web interactive
+npm run test:ui
+
+# Exécution unique (CI/CD)
+npm run test:run
+
+# Rapport de couverture détaillé
+npm run test:coverage
+```
+
+### Structure des tests
+
+Les tests sont co-localisés avec le code source pour faciliter la maintenance :
+
+```
+src/
+├── components/
+│   ├── Footer.tsx
+│   └── Footer.test.tsx              # Tests du composant
+├── contexts/
+│   ├── AircraftContext.tsx
+│   └── AircraftContext.test.tsx     # Tests du contexte
+├── hooks/
+│   ├── useVatsimData.ts
+│   ├── useUpdateCountdown.test.tsx  # Tests du hook
+│   └── useUniqueUsers.test.tsx
+├── utils/
+│   ├── pilotPopupContent.ts
+│   └── pilotPopupContent.test.ts    # Tests de la fonction
+└── test-setup.ts                     # Configuration globale Vitest
+```
 
 ## 📁 Structure du projet
 
 ```
 vatsim-dashboard/
 ├── src/
-│   ├── components/      # Composants React
+│   ├── components/           # Composants React
 │   │   ├── Footer.tsx
+│   │   ├── Footer.test.tsx
 │   │   ├── WorldMap.tsx
 │   │   └── WorldMap.css
-│   ├── hooks/           # Custom React hooks
+│   ├── contexts/             # React contexts
+│   │   ├── AircraftContext.tsx
+│   │   └── AircraftContext.test.tsx
+│   ├── hooks/                # Custom React hooks
 │   │   ├── useVatsimData.ts
 │   │   ├── useUpdateCountdown.ts
-│   │   └── useUniqueUsers.ts
+│   │   ├── useUpdateCountdown.test.tsx
+│   │   ├── useUniqueUsers.ts
+│   │   └── useUniqueUsers.test.tsx
+│   ├── utils/                # Fonctions utilitaires
+│   │   ├── pilotPopupContent.ts
+│   │   └── pilotPopupContent.test.ts
+│   ├── test-setup.ts         # Configuration globale Vitest
 │   ├── App.tsx
 │   └── main.tsx
-├── public/              # Assets statiques
+├── public/                   # Assets statiques
+├── .husky/                   # Git hooks (pre-commit, commit-msg)
+├── vitest.config.ts          # Configuration Vitest
 ├── Dockerfile
 ├── docker-compose.yml
 └── package.json
