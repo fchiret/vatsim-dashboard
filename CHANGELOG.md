@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/fchiret/vatsim-dashboard/compare/v0.0.1...v0.1.0) (2026-01-31)
+
+
+### Features
+
+* add pilot rating, server and transponder to popup ([2808685](https://github.com/fchiret/vatsim-dashboard/commit/2808685602f753ab75bb3a966ee333e4326bf8c7))
+
 ### [0.0.1](https://github.com/fchiret/vatsim-dashboard/compare/v0.0.0...v0.0.1) (2026-01-31)
 
 ## 0.0.0 (2026-01-27)
