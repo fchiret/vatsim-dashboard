@@ -73,7 +73,6 @@ describe('Footer Component', () => {
       { flight_plan: { aircraft_short: 'B737' } },
     ];
     localStorage.setItem('vatsim_pilots', JSON.stringify(mockPilots));
-    window.dispatchEvent(new Event('vatsim-pilots-updated'));
 
     renderWithProviders(<Footer />);
 
