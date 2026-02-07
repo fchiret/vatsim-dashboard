@@ -44,6 +44,7 @@ describe('useUpdateCountdown', () => {
   });
 
   afterEach(() => {
+    queryClient.clear();
     vi.clearAllTimers();
   });
 
