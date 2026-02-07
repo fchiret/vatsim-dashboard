@@ -71,14 +71,29 @@ describe('AircraftContext', () => {
   });
 
   it('should update aircraft list on vatsim-pilots-updated event', async () => {
-    const mockPilots = [
-      { flight_plan: { aircraft_short: 'A380' } },
+    // Set an initial list so we can verify it changes after the event.
+    const initialPilots = [
+      { flight_plan: { aircraft_short: 'B737' } },
     ];
-    
-    localStorage.setItem('vatsim_pilots', JSON.stringify(mockPilots));
-    
+    localStorage.setItem('vatsim_pilots', JSON.stringify(initialPilots));
+
     const { result } = renderHook(() => useAircraft(), { wrapper });
 
+    // Verify initial state reflects the initial localStorage contents.
+    await waitFor(() => {
+      expect(result.current.aircraftList).toContain('B737');
+    });
+
+    // Now update localStorage and dispatch the vatsim-pilots-updated event.
+    const updatedPilots = [
+      { flight_plan: { aircraft_short: 'A380' } },
+    ];
+    await act(async () => {
+      localStorage.setItem('vatsim_pilots', JSON.stringify(updatedPilots));
+      window.dispatchEvent(new Event('vatsim-pilots-updated'));
+    });
+
+    // The aircraft list should update to reflect the new pilots data.
     await waitFor(() => {
       expect(result.current.aircraftList).toContain('A380');
     });
