@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Footer from '../components/Footer';
@@ -20,12 +20,22 @@ vi.mock('../hooks/useUniqueUsers', () => ({
 }));
 
 describe('Footer Component', () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    // Create a fresh QueryClient for each test to avoid cache pollution
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
       },
-    },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+    localStorage.clear();
   });
 
   const renderWithProviders = (component: React.ReactElement) => {
