@@ -35,24 +35,62 @@ const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
 function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: PilotRating[] }) {
   const map = useMap();
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
-  const { selectedAircraft, toggleRoute } = useAircraft();
+  const { selectedAircraft, visibleRoutes, toggleRoute } = useAircraft();
 
-  // Add event listener for route toggle buttons
+  // Handle route toggle in popups - synchronize checkbox state and prevent popup close
   useEffect(() => {
-    const handleRouteToggle = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const toggleInput = target.closest('.toggle-route-btn') as HTMLInputElement;
-      if (toggleInput && toggleInput.type === 'checkbox') {
-        const callsign = toggleInput.dataset.callsign;
+    if (!map) return;
+
+    const handlePopupOpen = (e: L.PopupEvent) => {
+      const popup = e.popup;
+      const popupContent = popup.getElement();
+      
+      if (!popupContent) return;
+
+      const toggleInput = popupContent.querySelector('.toggle-route-btn') as HTMLInputElement;
+      if (!toggleInput) return;
+
+      // Synchronize checkbox state with visibleRoutes
+      const callsign = toggleInput.dataset.callsign;
+      if (callsign) {
+        toggleInput.checked = visibleRoutes.has(callsign);
+      }
+
+      const handleChange = () => {
         if (callsign) {
           toggleRoute(callsign);
         }
+      };
+
+      const handleClick = (evt: Event) => {
+        evt.stopPropagation();
+      };
+
+      // Attach listeners to prevent popup close
+      toggleInput.addEventListener('change', handleChange);
+      toggleInput.addEventListener('click', handleClick);
+      
+      const label = popupContent.querySelector(`label[for="${toggleInput.id}"]`);
+      if (label) {
+        label.addEventListener('click', handleClick);
       }
+
+      // Cleanup when popup closes
+      popup.on('remove', () => {
+        toggleInput.removeEventListener('change', handleChange);
+        toggleInput.removeEventListener('click', handleClick);
+        if (label) {
+          label.removeEventListener('click', handleClick);
+        }
+      });
     };
 
-    document.addEventListener('change', handleRouteToggle);
-    return () => document.removeEventListener('change', handleRouteToggle);
-  }, [toggleRoute]);
+    map.on('popupopen', handlePopupOpen);
+    
+    return () => {
+      map.off('popupopen', handlePopupOpen);
+    };
+  }, [map, toggleRoute, visibleRoutes]);
 
   useEffect(() => {
     if (!map || !pilots.length) return;

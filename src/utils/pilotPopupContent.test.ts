@@ -48,4 +48,25 @@ describe('pilotPopupContent', () => {
 
     expect(html).toContain('N/A');
   });
+
+  it('should check route toggle when route is visible', () => {
+    const html = generatePilotPopupContent(createMockPilot(), mockRatings, true);
+
+    expect(html).toContain('checked');
+    expect(html).toContain('toggle-route-btn');
+  });
+
+  it('should not check route toggle when route is not visible', () => {
+    const html = generatePilotPopupContent(createMockPilot(), mockRatings, false);
+
+    expect(html).not.toContain('checked');
+    expect(html).toContain('toggle-route-btn');
+  });
+
+  it('should not check route toggle by default when isRouteVisible is undefined', () => {
+    const html = generatePilotPopupContent(createMockPilot(), mockRatings);
+
+    expect(html).not.toContain('checked');
+    expect(html).toContain('toggle-route-btn');
+  });
 });

@@ -10,7 +10,11 @@ const getPilotRating = (
   return ratings.find(r => r.id === ratingId) || null;
 };
 
-export const generatePilotPopupContent = (pilot: Pilot, pilotRatings?: PilotRating[]): string => {
+export const generatePilotPopupContent = (
+  pilot: Pilot, 
+  pilotRatings?: PilotRating[],
+  isRouteVisible?: boolean
+): string => {
   const rating = getPilotRating(pilot.pilot_rating, pilotRatings);
   
   return `
@@ -77,6 +81,7 @@ export const generatePilotPopupContent = (pilot: Pilot, pilotRatings?: PilotRati
                       data-callsign="${pilot.callsign}"
                       data-route="${(pilot.flight_plan.departure + ' ' + pilot.flight_plan.route + ' ' + pilot.flight_plan.arrival).replace(/"/g, '&quot;')}"
                       id="route-toggle-${pilot.callsign}"
+                      ${isRouteVisible ? 'checked' : ''}
                     >
                     <label class="form-check-label small" for="route-toggle-${pilot.callsign}">
                       Show on map
