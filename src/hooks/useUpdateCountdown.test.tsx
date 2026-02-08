@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateCountdown } from '../hooks/useUpdateCountdown';
-import type { ReactNode } from 'react';
+import { createQueryClientWrapper, createTestQueryClient } from '../test-utils';
 
 // Mock useVatsimData
 vi.mock('../hooks/useVatsimData', () => ({
@@ -12,7 +11,7 @@ vi.mock('../hooks/useVatsimData', () => ({
 import { useVatsimData } from '../hooks/useVatsimData';
 
 describe('useUpdateCountdown', () => {
-  let queryClient: QueryClient;
+  let queryClient: ReturnType<typeof createTestQueryClient>;
 
   const createMockVatsimData = (timestamp?: string) => ({
     data: timestamp ? {
@@ -35,11 +34,7 @@ describe('useUpdateCountdown', () => {
   } as unknown as ReturnType<typeof useVatsimData>);
 
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
+    queryClient = createTestQueryClient();
     vi.clearAllMocks();
   });
 
@@ -48,14 +43,12 @@ describe('useUpdateCountdown', () => {
     vi.clearAllTimers();
   });
 
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-
   it('should return initial countdown values', () => {
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData());
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).toBe('--:--');
     expect(result.current.lastUpdateTime).toBe('');
@@ -65,7 +58,9 @@ describe('useUpdateCountdown', () => {
     const mockTimestamp = new Date('2026-01-31T10:00:00Z').toISOString();
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData(mockTimestamp));
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).not.toBe('--:--');
     expect(result.current.lastUpdateTime).toBeTruthy();
@@ -75,7 +70,9 @@ describe('useUpdateCountdown', () => {
     const mockTimestamp = new Date().toISOString();
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData(mockTimestamp));
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).toMatch(/^\d{2}:\d{2}$/);
   });
@@ -83,7 +80,9 @@ describe('useUpdateCountdown', () => {
   it('should handle missing update_timestamp gracefully', () => {
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData(''));
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).toBe('--:--');
     expect(result.current.lastUpdateTime).toBe('');
@@ -92,7 +91,9 @@ describe('useUpdateCountdown', () => {
   it('should handle undefined data gracefully', () => {
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData());
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).toBe('--:--');
     expect(result.current.lastUpdateTime).toBe('');
@@ -102,7 +103,9 @@ describe('useUpdateCountdown', () => {
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData('invalid-date'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.nextUpdateIn).toBeDefined();
     expect(result.current.lastUpdateTime).toBeDefined();
@@ -114,7 +117,9 @@ describe('useUpdateCountdown', () => {
     const mockTimestamp = new Date('2026-01-31T10:00:00Z').toISOString();
     vi.mocked(useVatsimData).mockReturnValue(createMockVatsimData(mockTimestamp));
 
-    const { result } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     expect(result.current.lastUpdateTime).toMatch(/\d+:\d+:\d+/);
   });
@@ -126,7 +131,9 @@ describe('useUpdateCountdown', () => {
     const mockFn = vi.mocked(useVatsimData);
     mockFn.mockReturnValue(createMockVatsimData(mockTimestamp1));
 
-    const { result, rerender } = renderHook(() => useUpdateCountdown(), { wrapper });
+    const { result, rerender } = renderHook(() => useUpdateCountdown(), { 
+      wrapper: createQueryClientWrapper(queryClient) 
+    });
 
     mockFn.mockReturnValue(createMockVatsimData(mockTimestamp2));
     rerender();

@@ -1,30 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useUniqueUsers } from '../hooks/useUniqueUsers';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { createQueryClientWrapper, createTestQueryClient } from '../test-utils';
 import * as useVatsimDataModule from './useVatsimData';
 
 describe('useUniqueUsers', () => {
-  let queryClient: QueryClient;
-  let wrapper: ({ children }: { children: ReactNode }) => React.JSX.Element;
+  let queryClient: ReturnType<typeof createTestQueryClient>;
 
   beforeEach(() => {
-    // Create a fresh QueryClient for each test to avoid cache pollution
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
-      },
-    });
-
-    wrapper = ({ children }: { children: ReactNode }) => (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    );
-
+    queryClient = createTestQueryClient();
     vi.clearAllMocks();
   });
 
@@ -53,7 +37,7 @@ describe('useUniqueUsers', () => {
     } as unknown as ReturnType<typeof useVatsimDataModule.useVatsimData>);
 
     const { result } = renderHook(() => useUniqueUsers(), {
-      wrapper,
+      wrapper: createQueryClientWrapper(queryClient),
     });
 
     expect(result.current.uniqueUsers).toBe(2500);
@@ -68,7 +52,7 @@ describe('useUniqueUsers', () => {
     } as unknown as ReturnType<typeof useVatsimDataModule.useVatsimData>);
 
     const { result } = renderHook(() => useUniqueUsers(), {
-      wrapper,
+      wrapper: createQueryClientWrapper(queryClient),
     });
 
     expect(result.current.uniqueUsers).toBe(0);
@@ -93,7 +77,22 @@ describe('useUniqueUsers', () => {
     } as unknown as ReturnType<typeof useVatsimDataModule.useVatsimData>);
 
     const { result } = renderHook(() => useUniqueUsers(), {
-      wrapper,
+      wrapper: createQueryClientWrapper(queryClient),
+    });
+
+    expect(result.current.uniqueUsers).toBe(0);
+  });
+
+  it('should return 0 when data is undefined', () => {
+    vi.spyOn(useVatsimDataModule, 'useVatsimData').mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useVatsimDataModule.useVatsimData>);
+
+    const { result } = renderHook(() => useUniqueUsers(), {
+      wrapper: createQueryClientWrapper(queryClient),
     });
 
     expect(result.current.uniqueUsers).toBe(0);

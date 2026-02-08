@@ -7,8 +7,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { useVatsimData } from '../hooks/useVatsimData';
 import type { Pilot, PilotRating } from '../hooks/useVatsimData';
-import markerIconSvg from '../../public/marker-icon.svg';
-import markerIconSelectedSvg from '../../public/marker-icon-selected.svg';
+import { useFlightPlanDecode } from '../hooks/useFlightPlanDecode';
+import { FlightRoute } from './FlightRoute';
 import { generatePilotPopupContent } from '../utils/pilotPopupContent';
 import { useAircraft } from '../contexts/AircraftContext';
 import './WorldMap.css';
@@ -20,7 +20,7 @@ interface SelectedMarkerOptions extends L.MarkerOptions {
 
 // Create custom icon using SVG from public folder
 const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
-  const iconSvg = isSelected ? markerIconSelectedSvg : markerIconSvg;
+  const iconSvg = isSelected ? '/marker-icon-selected.svg' : '/marker-icon.svg';
   return L.divIcon({
     html: `<div class="pilot-marker" style="transform: rotate(${heading}deg)">
       <img src="${iconSvg}" alt="pilot" width="32" height="32" />
@@ -35,7 +35,24 @@ const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
 function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: PilotRating[] }) {
   const map = useMap();
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
-  const { selectedAircraft } = useAircraft();
+  const { selectedAircraft, toggleRoute } = useAircraft();
+
+  // Add event listener for route toggle buttons
+  useEffect(() => {
+    const handleRouteToggle = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const toggleInput = target.closest('.toggle-route-btn') as HTMLInputElement;
+      if (toggleInput && toggleInput.type === 'checkbox') {
+        const callsign = toggleInput.dataset.callsign;
+        if (callsign) {
+          toggleRoute(callsign);
+        }
+      }
+    };
+
+    document.addEventListener('change', handleRouteToggle);
+    return () => document.removeEventListener('change', handleRouteToggle);
+  }, [toggleRoute]);
 
   useEffect(() => {
     if (!map || !pilots.length) return;
@@ -94,6 +111,45 @@ function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: 
   }, [pilots, map, selectedAircraft, pilotRatings]);
 
   return null;
+}
+
+function RouteDisplay({ pilots }: { pilots: Pilot[] }) {
+  const { visibleRoutes } = useAircraft();
+  
+  return (
+    <>
+      {pilots.map((pilot) => {
+        if (!visibleRoutes.has(pilot.callsign) || !pilot.flight_plan?.route) {
+          return null;
+        }
+        
+        const fullRoute = `${pilot.flight_plan.departure || ''} ${pilot.flight_plan.route} ${pilot.flight_plan.arrival || ''}`.trim();
+        
+        return (
+          <RouteRenderer 
+            key={pilot.callsign}
+            route={fullRoute}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function RouteRenderer({ route }: { route: string }) {
+  const { data: flightPlan } = useFlightPlanDecode({ route });
+  
+  if (!flightPlan?.encodedPolyline) {
+    return null;
+  }
+  
+  return (
+    <FlightRoute 
+      flightPlan={flightPlan}
+      color="#e74c3c"
+      fitBounds={false}
+    />
+  );
 }
 
 function MapSetView({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -223,7 +279,7 @@ export function WorldMap() {
     <MapContainer
       center={defaultCenter}
       zoom={defaultZoom}
-      scrollWheelZoom={false} // TODO: remove
+      scrollWheelZoom={false}
       style={{ height: '100vh', width: '100%' }}
     >
       <TileLayer
@@ -231,6 +287,7 @@ export function WorldMap() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapContent pilots={pilots} pilotRatings={data?.pilot_ratings} />
+      <RouteDisplay pilots={pilots} />
       <MapSetView center={center} zoom={zoom} />
       {isInitialized && <MapSaveState updateTimestamp={updateTimestamp} />}
     </MapContainer>

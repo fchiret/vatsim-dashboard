@@ -67,7 +67,22 @@ export const generatePilotPopupContent = (pilot: Pilot, pilotRatings?: PilotRati
               </li>
               ${pilot.flight_plan.route ? `
               <li class="list-group-item px-2 py-1">
-                <div class="text-muted mb-1">Route</div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="text-muted">Route</span>
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input toggle-route-btn" 
+                      type="checkbox" 
+                      role="switch"
+                      data-callsign="${pilot.callsign}"
+                      data-route="${(pilot.flight_plan.departure + ' ' + pilot.flight_plan.route + ' ' + pilot.flight_plan.arrival).replace(/"/g, '&quot;')}"
+                      id="route-toggle-${pilot.callsign}"
+                    >
+                    <label class="form-check-label small" for="route-toggle-${pilot.callsign}">
+                      Show on map
+                    </label>
+                  </div>
+                </div>
                 <small class="font-monospace text-break">${pilot.flight_plan.route}</small>
               </li>
               ` : ''}

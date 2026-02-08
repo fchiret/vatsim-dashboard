@@ -6,6 +6,9 @@ interface AircraftContextType {
   selectedAircraft: string | null;
   setSelectedAircraft: (aircraft: string | null) => void;
   aircraftList: string[];
+  visibleRoutes: Set<string>;
+  toggleRoute: (callsign: string) => void;
+  isRouteVisible: (callsign: string) => boolean;
 }
 
 const AircraftContext = createContext<AircraftContextType | undefined>(undefined);
@@ -13,6 +16,7 @@ const AircraftContext = createContext<AircraftContextType | undefined>(undefined
 export function AircraftProvider({ children }: { children: ReactNode }) {
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
   const [aircraftList, setAircraftList] = useState<string[]>([]);
+  const [visibleRoutes, setVisibleRoutes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const updateAircraftList = () => {
@@ -49,8 +53,33 @@ export function AircraftProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const toggleRoute = (callsign: string) => {
+    setVisibleRoutes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(callsign)) {
+        newSet.delete(callsign);
+      } else {
+        newSet.add(callsign);
+      }
+      return newSet;
+    });
+  };
+
+  const isRouteVisible = (callsign: string) => {
+    return visibleRoutes.has(callsign);
+  };
+
   return (
-    <AircraftContext.Provider value={{ selectedAircraft, setSelectedAircraft, aircraftList }}>
+    <AircraftContext.Provider 
+      value={{ 
+        selectedAircraft, 
+        setSelectedAircraft, 
+        aircraftList,
+        visibleRoutes,
+        toggleRoute,
+        isRouteVisible
+      }}
+    >
       {children}
     </AircraftContext.Provider>
   );

@@ -7,6 +7,7 @@ Application de visualisation en temps réel des pilotes actifs sur le réseau VA
 - 🗺️ Carte interactive mondiale avec markers des pilotes
 - ✈️ Clustering intelligent des markers pour les performances
 - 📊 Informations détaillées sur chaque vol (plan de vol, altitude, vitesse, etc.)
+- 🛣️ Affichage des routes de vol décodées sur la carte
 - ⏱️ Compte à rebours avant la prochaine mise à jour
 - 👥 Statistiques des utilisateurs uniques connectés
 - 💾 Sauvegarde automatique de la position et du zoom de la carte
@@ -18,6 +19,7 @@ Application de visualisation en temps réel des pilotes actifs sur le réseau VA
 - **Leaflet** + **React-Leaflet** - Cartographie interactive
 - **TanStack Query** - Gestion du cache et des requêtes API
 - **VATSIM API** - Données en temps réel du réseau VATSIM
+- **FlightPlan Database API** - Décodage des routes de vol
 
 ## 📦 Installation
 
@@ -35,9 +37,17 @@ L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 
 ### Installation locale
 
+**Prérequis** : Node.js 25+
+
 ```bash
 # Installer les dépendances
 npm install
+
+# Créer le fichier de configuration des variables d'environnement
+cp .env.example .env.local
+
+# Éditer .env.local et ajouter votre clé API FlightPlan Database
+# VITE_FLIGHTPLAN_DB_API_KEY=your_api_key_here
 
 # Lancer en mode développement
 npm run dev
@@ -48,6 +58,14 @@ npm run build
 # Preview du build de production
 npm run preview
 ```
+
+### Variables d'environnement
+
+L'application nécessite une clé API pour FlightPlan Database :
+
+- `VITE_FLIGHTPLAN_DB_API_KEY` : Clé API pour l'accès à FlightPlan Database (pour le décodage des routes)
+
+Obtenez une clé API gratuite sur [FlightPlan Database](https://flightplandatabase.com/).
 
 ## 🐳 Docker
 
@@ -110,11 +128,15 @@ src/
 │   └── AircraftContext.test.tsx     # Tests du contexte
 ├── hooks/
 │   ├── useVatsimData.ts
+│   ├── useFlightPlanDecode.ts       # Décodage des routes de vol
+│   ├── useFlightPlanDecode.test.ts  # Tests du décodage
 │   ├── useUpdateCountdown.test.tsx  # Tests du hook
 │   └── useUniqueUsers.test.tsx
 ├── utils/
 │   ├── pilotPopupContent.ts
-│   └── pilotPopupContent.test.ts    # Tests de la fonction
+│   ├── pilotPopupContent.test.ts    # Tests de la fonction
+│   ├── polylineDecoder.ts           # Décodeur de polyline
+│   └── polylineDecoder.test.ts      # Tests du décodeur
 └── test-setup.ts                     # Configuration globale Vitest
 ```
 
@@ -126,6 +148,8 @@ vatsim-dashboard/
 │   ├── components/           # Composants React
 │   │   ├── Footer.tsx
 │   │   ├── Footer.test.tsx
+│   │   ├── FlightRoute.tsx   # Affichage des routes
+│   │   ├── FlightRoute.test.tsx
 │   │   ├── WorldMap.tsx
 │   │   └── WorldMap.css
 │   ├── contexts/             # React contexts
@@ -133,19 +157,26 @@ vatsim-dashboard/
 │   │   └── AircraftContext.test.tsx
 │   ├── hooks/                # Custom React hooks
 │   │   ├── useVatsimData.ts
+│   │   ├── useFlightPlanDecode.ts  # Décodage routes de vol
+│   │   ├── useFlightPlanDecode.test.ts
 │   │   ├── useUpdateCountdown.ts
 │   │   ├── useUpdateCountdown.test.tsx
 │   │   ├── useUniqueUsers.ts
 │   │   └── useUniqueUsers.test.tsx
 │   ├── utils/                # Fonctions utilitaires
 │   │   ├── pilotPopupContent.ts
-│   │   └── pilotPopupContent.test.ts
+│   │   ├── pilotPopupContent.test.ts
+│   │   ├── polylineDecoder.ts      # Décodeur de polyline
+│   │   └── polylineDecoder.test.ts
 │   ├── test-setup.ts         # Configuration globale Vitest
 │   ├── App.tsx
 │   └── main.tsx
 ├── public/                   # Assets statiques
 ├── .husky/                   # Git hooks (pre-commit, commit-msg)
+├── .env.example              # Exemple de configuration
+├── .env.local                # Configuration locale (non commité)
 ├── vitest.config.ts          # Configuration Vitest
+├── vite.config.ts            # Configuration Vite + proxy API
 ├── Dockerfile
 ├── docker-compose.yml
 └── package.json
@@ -153,10 +184,19 @@ vatsim-dashboard/
 
 ## 🌐 API
 
-L'application utilise l'API publique VATSIM :
-- Endpoint : \`https://data.vatsim.net/v3/vatsim-data.json\`
+L'application utilise deux APIs :
+
+### VATSIM API (données en temps réel)
+- Endpoint : `https://data.vatsim.net/v3/vatsim-data.json`
 - Refresh : Toutes les 60 secondes
 - Aucune authentification requise
+
+### FlightPlan Database API (décodage des routes)
+- Endpoint : `https://api.flightplandatabase.com/auto/decode`
+- Méthode : POST
+- Authentification : Basic Auth (via proxy Vite)
+- Cache : 5 minutes par route
+- Utilisé pour décoder les routes de vol et afficher les trajectoires sur la carte
 
 ## 📝 License
 

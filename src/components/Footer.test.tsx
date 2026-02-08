@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Footer from '../components/Footer';
-import { AircraftProvider } from '../contexts/AircraftContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderWithProviders, createTestQueryClient } from '../test-utils';
 
 // Mock hooks
 vi.mock('../hooks/useUpdateCountdown', () => ({
@@ -20,17 +19,10 @@ vi.mock('../hooks/useUniqueUsers', () => ({
 }));
 
 describe('Footer Component', () => {
-  let queryClient: QueryClient;
+  let queryClient: ReturnType<typeof createTestQueryClient>;
 
   beforeEach(() => {
-    // Create a fresh QueryClient for each test to avoid cache pollution
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
-      },
-    });
+    queryClient = createTestQueryClient();
   });
 
   afterEach(() => {
@@ -38,23 +30,13 @@ describe('Footer Component', () => {
     localStorage.clear();
   });
 
-  const renderWithProviders = (component: React.ReactElement) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <AircraftProvider>
-          {component}
-        </AircraftProvider>
-      </QueryClientProvider>
-    );
-  };
-
-  it('should render footer with aircraft filter', () => {
-    renderWithProviders(<Footer />);
+  it('should display aircraft filter label for users', () => {
+    renderWithProviders(<Footer />, queryClient);
     expect(screen.getByText(/Highlight aircraft model/i)).toBeInTheDocument();
   });
 
-  it('should render "All aircraft models" option', () => {
-    renderWithProviders(<Footer />);
+  it('should display "All aircraft models" as default filter option', () => {
+    renderWithProviders(<Footer />, queryClient);
     expect(screen.getByText('All aircraft models')).toBeInTheDocument();
   });
 
@@ -63,7 +45,7 @@ describe('Footer Component', () => {
     expect(screen.getByText('1,500')).toBeInTheDocument();
   });
 
-  it('should render select element for aircraft filter', () => {
+  it('should provide a dropdown for aircraft filtering', () => {
     renderWithProviders(<Footer />);
     const selectElement = screen.getByRole('combobox');
     expect(selectElement).toBeInTheDocument();
@@ -75,7 +57,7 @@ describe('Footer Component', () => {
     expect(screen.getByText('10:00:00')).toBeInTheDocument();
   });
 
-  it('should call setSelectedAircraft when selecting an aircraft', async () => {
+  it('should update selected aircraft when user chooses from dropdown', async () => {
     const user = userEvent.setup();
     
     const mockPilots = [
@@ -84,7 +66,7 @@ describe('Footer Component', () => {
     ];
     localStorage.setItem('vatsim_pilots', JSON.stringify(mockPilots));
 
-    renderWithProviders(<Footer />);
+    renderWithProviders(<Footer />, queryClient);
 
     const selectElement = screen.getByRole('combobox') as HTMLSelectElement;
     
