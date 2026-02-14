@@ -78,6 +78,8 @@ src/
 │   ├── Footer.test.tsx # Footer component tests
 │   ├── FlightRoute.tsx # Flight route display on map
 │   ├── FlightRoute.test.tsx # Flight route tests
+│   ├── WaypointMarkers.tsx # Waypoint markers on map
+│   ├── WaypointMarkers.test.tsx # Waypoint markers tests
 │   ├── WorldMap.tsx    # Main map with Leaflet + clustering
 │   └── WorldMap.css    # Map and cluster styles
 ├── contexts/           # React contexts
@@ -87,6 +89,8 @@ src/
 │   ├── useVatsimData.ts         # API data fetching (TanStack Query)
 │   ├── useFlightPlanDecode.ts   # FlightPlan API route decoding
 │   ├── useFlightPlanDecode.test.ts # Route decode tests
+│   ├── useNavaidSearch.ts       # Navaid search API
+│   ├── useNavaidSearch.test.tsx # Navaid search tests
 │   ├── useUpdateCountdown.ts    # Countdown to next refresh
 │   ├── useUpdateCountdown.test.tsx # Countdown hook tests
 │   ├── useUniqueUsers.ts        # Unique user count
@@ -125,6 +129,8 @@ src/
 4. WorldMap displays pilots with Leaflet MarkerCluster
 5. Selected aircraft shown with `marker-icon-selected.svg` and red clusters
 6. Flight routes decoded via `useFlightPlanDecode` and displayed with `FlightRoute` component
+7. Waypoints from decoded routes displayed via `WaypointMarkers` component
+8. Missing waypoint coordinates fetched via `useNavaidSearch` from FlightPlan Database API
 
 ## Code Validation
 
@@ -250,11 +256,18 @@ src/
   - No authentication required
 
 - **FlightPlan Database API**
-  - Endpoint: `/api/flightplan/auto/decode` (proxied via Vite to `https://api.flightplandatabase.com`)
-  - Method: POST with `{ route: string }` body
-  - Authentication: Basic Auth (handled by Vite proxy using `VITE_FLIGHTPLAN_DB_API_KEY`)
-  - Cache: 5 minutes per route (TanStack Query)
-  - Used for decoding flight routes to display on map
+  - **Route Decode Endpoint**: `/api/flightplan/auto/decode` (proxied via Vite to `https://api.flightplandatabase.com`)
+    - Method: POST with `{ route: string }` body
+    - Authentication: Basic Auth (handled by Vite proxy using `VITE_FLIGHTPLAN_DB_API_KEY`)
+    - Cache: 5 minutes per route (TanStack Query)
+    - Used for decoding flight routes to display on map
+  
+  - **Navaid Search Endpoint**: `/api/flightplan/search/nav?q={waypoint}` (proxied via Vite to `https://api.flightplandatabase.com`)
+    - Method: GET
+    - Authentication: Basic Auth (handled by Vite proxy using `VITE_FLIGHTPLAN_DB_API_KEY`)
+    - Cache: 24 hours per waypoint (TanStack Query)
+    - Used for fetching waypoint coordinates (lat, lon) when not in decoded route
+    - Returns array of navaids, first result is used
 
 ## Trust These Instructions
 These instructions have been validated by running all commands and exploring the codebase. Only search for additional information if:

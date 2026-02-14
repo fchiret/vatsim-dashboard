@@ -17,6 +17,27 @@ export interface Route {
   nodes: RouteNode[]
 }
 
+/**
+ * Parse the notes field to extract waypoints from the "Requested:" line
+ */
+export function parseWaypointsFromNotes(notes: string): string[] {
+  if (!notes) return [];
+  
+  // Extract the "Requested:" line
+  const lines = notes.split('\n');
+  const requestedLine = lines.find(line => line.startsWith('Requested:'));
+  
+  if (!requestedLine) return [];
+  
+  // Extract waypoints after "Requested: "
+  const route = requestedLine.replace('Requested:', '').trim();
+  
+  // Split by spaces and filter out empty strings
+  const waypoints = route.split(/\s+/).filter(wp => wp.length > 0);
+  
+  return waypoints;
+}
+
 export interface FlightPlan {
   id: number
   fromICAO: string | null
@@ -37,11 +58,17 @@ export interface FlightPlan {
   tags: string[]
   user: {
     id: number
-    username: string
-    gravatarHash: string
+    username?: string
+    gravatarHash?: string
     location: string | null
   } | null
-  route: Route
+  application?: unknown | null
+  cycle?: {
+    id: number
+    ident: string
+    year: number
+    release: number
+  }
 }
 
 interface DecodeParams {
