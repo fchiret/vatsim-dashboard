@@ -1,11 +1,42 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useFlightPlanDecode } from './useFlightPlanDecode';
+import { useFlightPlanDecode, parseWaypointsFromNotes } from './useFlightPlanDecode';
 import { createQueryClientWrapper, createTestQueryClient } from '../test-utils';
 import { createMockFlightPlan } from '../test-factories';
 
 // Mock fetch
 globalThis.fetch = vi.fn() as typeof fetch;
+
+describe('parseWaypointsFromNotes', () => {
+  it('should parse waypoints from notes with Requested line', () => {
+    const notes = 'Requested: KRDG DUMMR T438 RAV SFK BUF KBUF\nUnmatched points: T438';
+    const waypoints = parseWaypointsFromNotes(notes);
+    expect(waypoints).toEqual(['KRDG', 'DUMMR', 'T438', 'RAV', 'SFK', 'BUF', 'KBUF']);
+  });
+
+  it('should return empty array when notes is empty', () => {
+    const waypoints = parseWaypointsFromNotes('');
+    expect(waypoints).toEqual([]);
+  });
+
+  it('should return empty array when no Requested line', () => {
+    const notes = 'Some other text\nNo requested line here';
+    const waypoints = parseWaypointsFromNotes(notes);
+    expect(waypoints).toEqual([]);
+  });
+
+  it('should handle notes with only Requested line', () => {
+    const notes = 'Requested: LFPG BOBIG KJFK';
+    const waypoints = parseWaypointsFromNotes(notes);
+    expect(waypoints).toEqual(['LFPG', 'BOBIG', 'KJFK']);
+  });
+
+  it('should handle multiple spaces between waypoints', () => {
+    const notes = 'Requested: LFPG   BOBIG    KJFK';
+    const waypoints = parseWaypointsFromNotes(notes);
+    expect(waypoints).toEqual(['LFPG', 'BOBIG', 'KJFK']);
+  });
+});
 
 describe('useFlightPlanDecode', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>;

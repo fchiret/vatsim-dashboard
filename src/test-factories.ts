@@ -67,7 +67,7 @@ export function createMockFlightPlan(overrides?: Partial<FlightPlanDecoded>): Fl
     likes: 10,
     downloads: 100,
     popularity: 0.5,
-    notes: 'Transatlantic flight',
+    notes: 'Requested: LFPG BOBIG KJFK\nUnmatched points: none',
     encodedPolyline: 'mock_encoded_polyline',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -77,28 +77,6 @@ export function createMockFlightPlan(overrides?: Partial<FlightPlanDecoded>): Fl
       username: 'pilot123',
       gravatarHash: 'hash123',
       location: 'France',
-    },
-    route: {
-      nodes: [
-        {
-          ident: 'LFPG',
-          type: 'airport',
-          lat: 49.0097,
-          lon: 2.5479,
-          alt: 0,
-          name: 'Paris Charles de Gaulle',
-          via: null,
-        },
-        {
-          ident: 'KJFK',
-          type: 'airport',
-          lat: 40.6413,
-          lon: -73.7781,
-          alt: 0,
-          name: 'John F. Kennedy International',
-          via: null,
-        },
-      ],
     },
     ...overrides,
   };

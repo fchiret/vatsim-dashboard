@@ -8,6 +8,7 @@ Application de visualisation en temps réel des pilotes actifs sur le réseau VA
 - ✈️ Clustering intelligent des markers pour les performances
 - 📊 Informations détaillées sur chaque vol (plan de vol, altitude, vitesse, etc.)
 - 🛣️ Affichage des routes de vol décodées sur la carte
+- 📍 Visualisation des waypoints (points de navigation) sur les routes
 - ⏱️ Compte à rebours avant la prochaine mise à jour
 - 👥 Statistiques des utilisateurs uniques connectés
 - 💾 Sauvegarde automatique de la position et du zoom de la carte
@@ -150,6 +151,8 @@ vatsim-dashboard/
 │   │   ├── Footer.test.tsx
 │   │   ├── FlightRoute.tsx   # Affichage des routes
 │   │   ├── FlightRoute.test.tsx
+│   │   ├── WaypointMarkers.tsx  # Affichage des waypoints
+│   │   ├── WaypointMarkers.test.tsx
 │   │   ├── WorldMap.tsx
 │   │   └── WorldMap.css
 │   ├── contexts/             # React contexts
@@ -159,6 +162,8 @@ vatsim-dashboard/
 │   │   ├── useVatsimData.ts
 │   │   ├── useFlightPlanDecode.ts  # Décodage routes de vol
 │   │   ├── useFlightPlanDecode.test.ts
+│   │   ├── useNavaidSearch.ts  # Recherche de navaids
+│   │   ├── useNavaidSearch.test.tsx
 │   │   ├── useUpdateCountdown.ts
 │   │   ├── useUpdateCountdown.test.tsx
 │   │   ├── useUniqueUsers.ts
@@ -191,12 +196,21 @@ L'application utilise deux APIs :
 - Refresh : Toutes les 60 secondes
 - Aucune authentification requise
 
-### FlightPlan Database API (décodage des routes)
-- Endpoint : `https://api.flightplandatabase.com/auto/decode`
-- Méthode : POST
+### FlightPlan Database API (décodage des routes et navaids)
+- **Décodage de routes** :
+  - Endpoint : `https://api.flightplandatabase.com/auto/decode`
+  - Méthode : POST
+  - Cache : 5 minutes par route
+  - Utilisé pour décoder les routes de vol et afficher les trajectoires sur la carte
+
+- **Recherche de navaids** :
+  - Endpoint : `https://api.flightplandatabase.com/search/nav?q={waypoint}`
+  - Méthode : GET
+  - Cache : 24 heures par waypoint
+  - Utilisé pour récupérer les coordonnées des waypoints et les afficher sur la carte
+
 - Authentification : Basic Auth (via proxy Vite)
-- Cache : 5 minutes par route
-- Utilisé pour décoder les routes de vol et afficher les trajectoires sur la carte
+- Documentation : [FlightPlan Database API](https://flightplandatabase.com/dev/api)
 
 ## 📝 License
 
