@@ -7,7 +7,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { useVatsimData } from '../hooks/useVatsimData';
 import type { Pilot, PilotRating } from '../hooks/useVatsimData';
-import { useFlightPlanDecode, parseWaypointsFromNotes } from '../hooks/useFlightPlanDecode';
+import { useFlightPlanDecode } from '../hooks/useFlightPlanDecode';
 import { FlightRoute } from './FlightRoute';
 import { WaypointMarkers } from './WaypointMarkers';
 import { generatePilotPopupContent } from '../utils/pilotPopupContent';
@@ -176,14 +176,11 @@ function RouteDisplay({ pilots }: { pilots: Pilot[] }) {
 }
 
 function RouteRenderer({ route }: { route: string }) {
-  const { data: flightPlan } = useFlightPlanDecode({ route });
+  const { data: flightPlan, parsedWaypoints } = useFlightPlanDecode({ route });
   
   if (!flightPlan?.encodedPolyline) {
     return null;
   }
-  
-  // Parse waypoints from notes
-  const waypoints = parseWaypointsFromNotes(flightPlan.notes);
   
   return (
     <>
@@ -192,8 +189,8 @@ function RouteRenderer({ route }: { route: string }) {
         color="#e74c3c"
         fitBounds={false}
       />
-      {waypoints.length > 0 && (
-        <WaypointMarkers waypoints={waypoints} />
+      {parsedWaypoints.length > 0 && (
+        <WaypointMarkers waypoints={parsedWaypoints} />
       )}
     </>
   );

@@ -4,19 +4,17 @@ import { useNavaidSearch } from './useNavaidSearch';
 import { createQueryClientWrapper, createTestQueryClient } from '../test-utils';
 import type { Navaid } from './useNavaidSearch';
 
-// Mock fetch
-globalThis.fetch = vi.fn() as typeof fetch;
-
 describe('useNavaidSearch', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>;
 
   beforeEach(() => {
     queryClient = createTestQueryClient();
-    vi.clearAllMocks();
+    vi.stubGlobal('fetch', vi.fn());
   });
 
   afterEach(() => {
     queryClient.clear();
+    vi.unstubAllGlobals();
   });
 
   it('should not fetch when params is null', () => {
