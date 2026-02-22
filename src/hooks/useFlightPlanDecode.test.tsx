@@ -108,7 +108,7 @@ describe('useFlightPlanDecode', () => {
     expect(result.current.data).toEqual(mockFlightPlan);
   });
 
-  it('should expose parsedWaypoints derived from flight plan notes', async () => {
+  it('should derive parsedWaypoints from notes, excluding unmatched tokens', async () => {
     const mockFlightPlan = createMockFlightPlan({
       notes: 'Requested: LFPG BOBIG KJFK\nUnmatched points: none',
     });
@@ -124,6 +124,7 @@ describe('useFlightPlanDecode', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+    // All three from notes; none are in Unmatched points
     expect(result.current.parsedWaypoints).toEqual([
       { ident: 'LFPG' },
       { ident: 'BOBIG' },
@@ -139,14 +140,14 @@ describe('useFlightPlanDecode', () => {
     expect(result.current.parsedWaypoints).toEqual([]);
   });
 
-  it('should enrich parsedWaypoints with coordinates from route.nodes', async () => {
+  it('should enrich parsedWaypoints with coordinates from route.nodes when available', async () => {
     const mockFlightPlan = createMockFlightPlan({
       notes: 'Requested: LFPG BOBIG KJFK',
       route: {
         nodes: [
           { ident: 'LFPG', type: 'airport', lat: 49.0097, lon: 2.5479, alt: 0, name: 'Paris CDG', via: null },
           { ident: 'BOBIG', type: 'waypoint', lat: 50.5, lon: 1.5, alt: 0, name: null, via: null },
-          // KJFK is intentionally missing from route.nodes to test the fallback
+          // KJFK absent from route.nodes: falls back to { ident } only
         ],
       },
     });
@@ -165,8 +166,7 @@ describe('useFlightPlanDecode', () => {
     expect(result.current.parsedWaypoints).toEqual([
       { ident: 'LFPG', lat: 49.0097, lon: 2.5479, name: 'Paris CDG', type: 'airport' },
       { ident: 'BOBIG', lat: 50.5, lon: 1.5, name: null, type: 'waypoint' },
-      // KJFK falls back: no coords
-      { ident: 'KJFK' },
+      { ident: 'KJFK' }, // no coords — WaypointMarker will use navaid search
     ]);
   });
 

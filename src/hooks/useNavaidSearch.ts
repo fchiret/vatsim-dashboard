@@ -13,7 +13,7 @@ interface NavaidSearchParams {
 }
 
 export function useNavaidSearch(params: NavaidSearchParams | null) {
-  return useQuery<Navaid>({
+  return useQuery<Navaid | null>({
     queryKey: ['navaidSearch', params?.waypoint],
     queryFn: async () => {
       if (!params?.waypoint) {
@@ -48,8 +48,10 @@ export function useNavaidSearch(params: NavaidSearchParams | null) {
         };
       }
       
-      // Si aucun résultat, retourner null ou lever une erreur
-      throw new Error(`No navaid found for waypoint: ${params.waypoint}`);
+      // No result found (e.g. airway identifier like V389): return null so
+      // TanStack Query stores the miss in its success cache for 24 hours,
+      // preventing repeated API calls on remount (e.g. toggling route on/off).
+      return null;
     },
     enabled: !!params?.waypoint, // Only run query if waypoint is provided
     staleTime: 24 * 60 * 60 * 1000, // Cache for 24 hours (navaids don't change often)
