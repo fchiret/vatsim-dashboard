@@ -8,20 +8,19 @@ interface WaypointMarkerProps {
 
 /**
  * Renders a CircleMarker for a single waypoint.
- * Uses pre-loaded coordinates when available (from the decode response) to
- * avoid an extra navaid search request. Falls back to useNavaidSearch only
- * when the decode step didn't supply lat/lon for this ident.
+ * Uses pre-loaded coordinates when available (from route.nodes in the decode
+ * response). Falls back to useNavaidSearch when coordinates are absent.
+ * Airways (e.g. V389) won't resolve via navaid search and will be silently
+ * skipped — no marker is rendered.
  */
 function WaypointMarker({ waypoint }: WaypointMarkerProps) {
   const hasPreloadedCoords =
     Number.isFinite(waypoint.lat) && Number.isFinite(waypoint.lon);
 
-  // Only trigger a navaid search when coordinates weren't already provided.
   const { data: navaid, isLoading, error } = useNavaidSearch(
     hasPreloadedCoords ? null : { waypoint: waypoint.ident }
   );
 
-  // Resolve the coordinate source: preloaded coords take priority.
   const resolved = hasPreloadedCoords
     ? { ident: waypoint.ident, lat: waypoint.lat as number, lon: waypoint.lon as number, name: waypoint.name, type: waypoint.type }
     : navaid;
@@ -33,9 +32,12 @@ function WaypointMarker({ waypoint }: WaypointMarkerProps) {
     return null;
   }
 
+  const lat = resolved!.lat;
+  const lon = resolved!.lon;
+
   return (
     <CircleMarker
-      center={[resolved!.lat, resolved!.lon]}
+      center={[lat, lon]}
       radius={6}
       pathOptions={{
         color: '#ab0000',
@@ -66,7 +68,7 @@ function WaypointMarker({ waypoint }: WaypointMarkerProps) {
               <li className="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
                 <span className="text-muted">Position</span>
                 <small className="font-monospace">
-                  {resolved!.lat.toFixed(4)}, {resolved!.lon.toFixed(4)}
+                  {lat.toFixed(4)}, {lon.toFixed(4)}
                 </small>
               </li>
             </ul>

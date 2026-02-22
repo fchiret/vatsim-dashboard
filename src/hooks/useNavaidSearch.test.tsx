@@ -104,20 +104,21 @@ describe('useNavaidSearch', () => {
     expect(result.current.data).toEqual(mockNavaids[0]);
   });
 
-  it('should handle empty results', async () => {
+  it('should return null when no results found (e.g. airway identifier)', async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => [],
     } as Response);
 
-    const { result } = renderHook(() => useNavaidSearch({ waypoint: 'INVALID' }), { 
+    const { result } = renderHook(() => useNavaidSearch({ waypoint: 'V389' }), { 
       wrapper: createQueryClientWrapper(queryClient) 
     });
 
-    await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 3000 });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.error).toBeInstanceOf(Error);
-    expect(result.current.error?.message).toContain('No navaid found for waypoint: INVALID');
+    // Null result is cached as a success — no retry on remount
+    expect(result.current.data).toBeNull();
+    expect(result.current.isError).toBe(false);
   });
 
   it('should handle API errors gracefully', async () => {

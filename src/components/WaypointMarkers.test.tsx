@@ -61,7 +61,7 @@ describe('WaypointMarkers Component', () => {
 
       await waitFor(() => {
         const circles = container.querySelectorAll('path.leaflet-interactive');
-        expect(circles.length).toBeGreaterThan(0);
+        expect(circles.length).toBe(3);
       }, { timeout: 3000 });
     });
 
@@ -73,7 +73,6 @@ describe('WaypointMarkers Component', () => {
         expect(circles.length).toBe(3);
       }, { timeout: 3000 });
 
-      // No navaid HTTP requests should have been made
       expect(fetch).not.toHaveBeenCalled();
     });
 
@@ -84,13 +83,8 @@ describe('WaypointMarkers Component', () => {
       expect(circles.length).toBe(0);
     });
 
-    it('should fetch navaid data for each waypoint', async () => {
-      const mockNavaid: Navaid = {
-        ident: 'LFPG',
-        lat: 49.0097,
-        lon: 2.5479,
-        type: 'airport',
-      };
+    it('should fetch navaid data for each waypoint without pre-loaded coords', async () => {
+      const mockNavaid: Navaid = { ident: 'LFPG', lat: 49.0097, lon: 2.5479, type: 'airport' };
 
       (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
@@ -102,16 +96,27 @@ describe('WaypointMarkers Component', () => {
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
           '/api/flightplan/search/nav?q=LFPG',
-          expect.objectContaining({
-            method: 'GET',
-          })
+          expect.objectContaining({ method: 'GET' })
         );
       });
+    });
+
+    it('should not call navaid search for waypoints with pre-loaded coordinates', async () => {
+      const { container } = renderWithMap(
+        <WaypointMarkers waypoints={[{ ident: 'LFPG', lat: 49.0097, lon: 2.5479 }]} />
+      );
+
+      await waitFor(() => {
+        const circles = container.querySelectorAll('path.leaflet-interactive');
+        expect(circles.length).toBe(1);
+      });
+
+      expect(fetch).not.toHaveBeenCalled();
     });
   });
 
   describe('Error Handling', () => {
-    it('should not render waypoint when navaid search fails', async () => {
+    it('should not render waypoint when navaid search fails (e.g. airway identifier)', async () => {
       (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         status: 404,
@@ -119,13 +124,12 @@ describe('WaypointMarkers Component', () => {
         json: async () => ({ error: 'Not found' }),
       } as Response);
 
-      const { container } = renderWithMap(<WaypointMarkers waypoints={[{ ident: 'INVALID' }]} />);
+      const { container } = renderWithMap(<WaypointMarkers waypoints={[{ ident: 'V389' }]} />);
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalled();
       });
 
-      // Should not render circle marker when search fails
       const circles = container.querySelectorAll('path.leaflet-interactive');
       expect(circles.length).toBe(0);
     });
@@ -144,35 +148,22 @@ describe('WaypointMarkers Component', () => {
     });
 
     it('should render waypoint when lat or lon is 0 (valid coordinate)', async () => {
-      const mockNavaid: Navaid = {
-        ident: 'NULL',
-        lat: 0,
-        lon: 0,
-        type: 'waypoint',
-      };
-
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => [mockNavaid],
-      });
-
-      const { container } = renderWithMap(<WaypointMarkers waypoints={[{ ident: 'NULL' }]} />);
+      const { container } = renderWithMap(
+        <WaypointMarkers waypoints={[{ ident: 'NULL', lat: 0, lon: 0 }]} />
+      );
 
       await waitFor(() => {
         const circles = container.querySelectorAll('path.leaflet-interactive');
         expect(circles.length).toBe(1);
       });
+
+      expect(fetch).not.toHaveBeenCalled();
     });
   });
 
   describe('Waypoint Styling', () => {
-    it('should render waypoints with correct color and style', async () => {
-      const mockNavaid: Navaid = {
-        ident: 'LFPG',
-        lat: 49.0097,
-        lon: 2.5479,
-        type: 'airport',
-      };
+    it('should render waypoints with correct color and style via navaid search', async () => {
+      const mockNavaid: Navaid = { ident: 'LFPG', lat: 49.0097, lon: 2.5479, type: 'airport' };
 
       (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
@@ -184,7 +175,7 @@ describe('WaypointMarkers Component', () => {
       await waitFor(() => {
         const circles = container.querySelectorAll('path.leaflet-interactive');
         expect(circles.length).toBeGreaterThan(0);
-        
+
         const circle = circles[0] as SVGPathElement;
         expect(circle).toHaveAttribute('stroke', '#ab0000');
         expect(circle).toHaveAttribute('fill', '#bb5555');
@@ -211,12 +202,7 @@ describe('WaypointMarkers Component', () => {
 
   describe('Multiple Waypoints', () => {
     it('should render multiple waypoints via navaid search', async () => {
-      const mockNavaid: Navaid = {
-        ident: 'TEST',
-        lat: 48.0,
-        lon: 2.0,
-        type: 'waypoint',
-      };
+      const mockNavaid: Navaid = { ident: 'TEST', lat: 48.0, lon: 2.0, type: 'waypoint' };
 
       (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,

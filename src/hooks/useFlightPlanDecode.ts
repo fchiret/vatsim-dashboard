@@ -143,8 +143,8 @@ export function useFlightPlanDecode(params: DecodeParams | null) {
     if (identifiers.length === 0) return [];
 
     // Build a lookup map of ident -> RouteNode from the already-decoded route nodes.
-    // These coordinates come for free from the decode response so we can avoid
-    // a navaid search request for every waypoint that's already resolved.
+    // The /auto/decode endpoint does not currently return route.nodes, but if it ever
+    // does, coordinates will be pre-loaded here to skip the navaid search request.
     const nodeByIdent = new Map<string, RouteNode>();
     for (const node of query.data.route?.nodes ?? []) {
       nodeByIdent.set(node.ident.toUpperCase(), node);
@@ -155,7 +155,7 @@ export function useFlightPlanDecode(params: DecodeParams | null) {
       if (node && Number.isFinite(node.lat) && Number.isFinite(node.lon)) {
         return { ident, lat: node.lat, lon: node.lon, name: node.name, type: node.type };
       }
-      // Fallback: coordinates unknown — WaypointMarker will trigger navaid search
+      // Fallback: no coords — WaypointMarker will trigger a navaid search
       return { ident };
     });
   })();
