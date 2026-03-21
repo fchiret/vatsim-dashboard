@@ -13,7 +13,8 @@ const getPilotRating = (
 export const generatePilotPopupContent = (
   pilot: Pilot, 
   pilotRatings?: PilotRating[],
-  isRouteVisible?: boolean
+  isRouteVisible?: boolean,
+  showFlightPlan: boolean = true
 ): string => {
   const rating = getPilotRating(pilot.pilot_rating, pilotRatings);
   
@@ -56,7 +57,7 @@ export const generatePilotPopupContent = (
           </li>
         </ul>
         ${
-          pilot.flight_plan
+          showFlightPlan && pilot.flight_plan
             ? `
           <div class="mt-2">
             <h6 class="border-bottom pb-1 mb-2 text-primary">Flight Plan</h6>
