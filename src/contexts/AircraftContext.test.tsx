@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { AircraftProvider, useAircraft } from '../contexts/AircraftContext';
+import { createMockPilot } from '../test-factories';
 import type { ReactNode } from 'react';
 
 describe('AircraftContext', () => {
@@ -17,6 +18,8 @@ describe('AircraftContext', () => {
 
     expect(result.current.selectedAircraft).toBeNull();
     expect(result.current.aircraftList).toEqual([]);
+    expect(result.current.visiblePilots).toEqual([]);
+    expect(result.current.highlightedPilot).toBeNull();
   });
 
   it('should update selected aircraft', () => {
@@ -103,5 +106,41 @@ describe('AircraftContext', () => {
     expect(() => {
       renderHook(() => useAircraft());
     }).toThrow('useAircraft must be used within an AircraftProvider');
+  });
+
+  it('should update visible pilots', () => {
+    const { result } = renderHook(() => useAircraft(), { wrapper });
+    const mockPilots = [
+      createMockPilot({ callsign: 'AAL100' }),
+      createMockPilot({ callsign: 'BAW200' }),
+    ];
+
+    act(() => {
+      result.current.setVisiblePilots(mockPilots);
+    });
+
+    expect(result.current.visiblePilots).toEqual(mockPilots);
+    expect(result.current.visiblePilots).toHaveLength(2);
+  });
+
+  it('should update highlighted pilot', () => {
+    const { result } = renderHook(() => useAircraft(), { wrapper });
+
+    act(() => {
+      result.current.setHighlightedPilot('DAL42');
+    });
+
+    expect(result.current.highlightedPilot).toBe('DAL42');
+  });
+
+  it('should clear highlighted pilot', () => {
+    const { result } = renderHook(() => useAircraft(), { wrapper });
+
+    act(() => {
+      result.current.setHighlightedPilot('DAL42');
+      result.current.setHighlightedPilot(null);
+    });
+
+    expect(result.current.highlightedPilot).toBeNull();
   });
 });

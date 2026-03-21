@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -36,7 +36,32 @@ const createPilotIcon = (heading: number = 0, isSelected: boolean = false) => {
 function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: PilotRating[] }) {
   const map = useMap();
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
-  const { selectedAircraft, visibleRoutes, toggleRoute } = useAircraft();
+  const { selectedAircraft, visibleRoutes, toggleRoute, setVisiblePilots, highlightedPilot, setHighlightedPilot } = useAircraft();
+  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
+  const highlightFromMapRef = useRef(false);
+
+  // Update visible pilots based on current map bounds
+  const updateVisiblePilots = useCallback(() => {
+    if (!map || !pilots.length) {
+      setVisiblePilots([]);
+      return;
+    }
+    const bounds = map.getBounds();
+    const filtered = pilots.filter(p => bounds.contains([p.latitude, p.longitude]));
+    setVisiblePilots(filtered);
+  }, [map, pilots, setVisiblePilots]);
+
+  // Listen to map move/zoom events to update visible pilots
+  useEffect(() => {
+    if (!map) return;
+    updateVisiblePilots();
+    map.on('moveend', updateVisiblePilots);
+    map.on('zoomend', updateVisiblePilots);
+    return () => {
+      map.off('moveend', updateVisiblePilots);
+      map.off('zoomend', updateVisiblePilots);
+    };
+  }, [map, updateVisiblePilots]);
 
   // Handle route toggle in popups - synchronize checkbox state and prevent popup close
   useEffect(() => {
@@ -134,6 +159,7 @@ function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: 
     const group = markerClusterGroupRef.current;
     if (!group) return;
     group.clearLayers();
+    markersMapRef.current.clear();
 
     // Add markers to cluster group
     pilots.forEach((pilot) => {
@@ -145,9 +171,38 @@ function MapContent({ pilots, pilotRatings }: { pilots: Pilot[]; pilotRatings?: 
       } as SelectedMarkerOptions);
 
       marker.bindPopup(generatePilotPopupContent(pilot, pilotRatings));
+
+      marker.on('mouseover', () => {
+        highlightFromMapRef.current = true;
+        setHighlightedPilot(pilot.callsign);
+      });
+      marker.on('mouseout', () => {
+        highlightFromMapRef.current = true;
+        setHighlightedPilot(null);
+      });
+
+      markersMapRef.current.set(pilot.callsign, marker);
       group.addLayer(marker);
     });
-  }, [pilots, map, selectedAircraft, pilotRatings]);
+  }, [pilots, map, selectedAircraft, pilotRatings, setHighlightedPilot]);
+
+  // React to highlightedPilot from PilotList click: zoom to marker and open popup
+  useEffect(() => {
+    // Skip zoom/popup when highlight comes from map hover
+    if (highlightFromMapRef.current) {
+      highlightFromMapRef.current = false;
+      return;
+    }
+    if (!highlightedPilot || !markerClusterGroupRef.current) return;
+    const marker = markersMapRef.current.get(highlightedPilot);
+    if (!marker) return;
+
+    const group = markerClusterGroupRef.current;
+    // zoomToShowLayer unclusters and zooms to show the marker, then opens popup
+    group.zoomToShowLayer(marker, () => {
+      marker.openPopup();
+    });
+  }, [highlightedPilot]);
 
   return null;
 }
@@ -324,7 +379,7 @@ export function WorldMap() {
       center={defaultCenter}
       zoom={defaultZoom}
       scrollWheelZoom={false}
-      style={{ height: '100vh', width: '100%' }}
+      style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

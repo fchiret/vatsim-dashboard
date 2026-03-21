@@ -78,6 +78,8 @@ src/
 │   ├── Footer.test.tsx # Footer component tests
 │   ├── FlightRoute.tsx # Flight route display on map
 │   ├── FlightRoute.test.tsx # Flight route tests
+│   ├── PilotList.tsx   # Scrollable table of pilots visible on map
+│   ├── PilotList.test.tsx # PilotList component tests
 │   ├── WaypointMarkers.tsx # Waypoint markers on map
 │   ├── WaypointMarkers.test.tsx # Waypoint markers tests
 │   ├── WorldMap.tsx    # Main map with Leaflet + clustering
@@ -120,7 +122,7 @@ src/
 ### State Management
 - **TanStack Query**: API caching, auto-refetch every 60 seconds
 - **localStorage**: Persists map position/zoom and pilot data
-- **Context**: `AircraftContext` manages selected aircraft, aircraft list, and visible routes
+- **Context**: `AircraftContext` manages selected aircraft, aircraft list, visible routes, and visible pilots (pilots in current map viewport)
 
 ### Data Flow
 1. `useVatsimData` fetches from `https://data.vatsim.net/v3/vatsim-data.json`
