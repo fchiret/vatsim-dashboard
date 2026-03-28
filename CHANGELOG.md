@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/fchiret/vatsim-dashboard/compare/v0.2.0...v0.3.0) (2026-03-28)
+
+
+### Features
+
+* add pilot list sidebar with map interaction ([e344923](https://github.com/fchiret/vatsim-dashboard/commit/e34492377df85469653e46ffd7e5770abe0bc078))
+* add waypoint markers to flight routes with navaid search ([6fc7b16](https://github.com/fchiret/vatsim-dashboard/commit/6fc7b161d685201b6ca02fd9422a2dafb2fa72ff))
+* **waypoints:** enrich waypoints with decode coords to skip navaid search ([2ca5456](https://github.com/fchiret/vatsim-dashboard/commit/2ca54560129b237d77772cb0be10ad63a073730b))
+
+
+### Bug Fixes
+
+* **navaid:** cache unresolved waypoints (e.g. airways) to avoid repeated API calls ([0b20918](https://github.com/fchiret/vatsim-dashboard/commit/0b20918cecf9bd5a1424ceb22aaa96d87cf5aa97))
+
 ## [0.2.0](https://github.com/fchiret/vatsim-dashboard/compare/v0.1.1...v0.2.0) (2026-02-08)
 
 ### [0.1.1](https://github.com/fchiret/vatsim-dashboard/compare/v0.1.0...v0.1.1) (2026-02-08)
