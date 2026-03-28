@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useAircraft } from '../contexts/AircraftContext';
 import { useVatsimData } from '../hooks/useVatsimData';
-import { generatePilotPopupContent } from '../utils/pilotPopupContent';
+import { PilotCard } from './PilotCard';
 
 export function PilotList() {
-  const { visiblePilots, isRouteVisible, highlightedPilot, setHighlightedPilot } = useAircraft();
+  const { visiblePilots, highlightedPilot, setHighlightedPilot } = useAircraft();
   const { data } = useVatsimData();
   const cardRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -43,11 +43,19 @@ export function PilotList() {
               }}
               className={`mb-2 pilot-card${highlightedPilot === pilot.callsign ? ' pilot-card-highlighted' : ''}`}
               style={{ cursor: 'pointer' }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Pilot ${pilot.callsign}`}
               onClick={() => setHighlightedPilot(pilot.callsign)}
-              dangerouslySetInnerHTML={{
-                __html: generatePilotPopupContent(pilot, data?.pilot_ratings, isRouteVisible(pilot.callsign), false)
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setHighlightedPilot(pilot.callsign);
+                }
               }}
-            />
+            >
+              <PilotCard pilot={pilot} pilotRatings={data?.pilot_ratings} />
+            </div>
           ))
         )}
       </div>
