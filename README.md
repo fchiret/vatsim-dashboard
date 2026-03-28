@@ -151,7 +151,9 @@ vatsim-dashboard/
 │   │   ├── Footer.test.tsx
 │   │   ├── FlightRoute.tsx   # Affichage des routes
 │   │   ├── FlightRoute.test.tsx
-│   │   ├── PilotList.tsx     # Table des pilotes visibles sur la carte
+│   │   ├── PilotCard.tsx     # Carte d'information pilote (JSX)
+│   │   ├── PilotCard.test.tsx
+│   │   ├── PilotList.tsx     # Liste scrollable des pilotes visibles
 │   │   ├── PilotList.test.tsx
 │   │   ├── WaypointMarkers.tsx  # Affichage des waypoints
 │   │   ├── WaypointMarkers.test.tsx

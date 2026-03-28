@@ -78,7 +78,9 @@ src/
 │   ├── Footer.test.tsx # Footer component tests
 │   ├── FlightRoute.tsx # Flight route display on map
 │   ├── FlightRoute.test.tsx # Flight route tests
-│   ├── PilotList.tsx   # Scrollable table of pilots visible on map
+│   ├── PilotCard.tsx   # Pilot info card (JSX rendering)
+│   ├── PilotCard.test.tsx # PilotCard component tests
+│   ├── PilotList.tsx   # Scrollable list of pilots visible on map
 │   ├── PilotList.test.tsx # PilotList component tests
 │   ├── WaypointMarkers.tsx # Waypoint markers on map
 │   ├── WaypointMarkers.test.tsx # Waypoint markers tests

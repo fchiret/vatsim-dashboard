@@ -71,93 +71,6 @@ describe('PilotList', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('should display pilot callsign and name', () => {
-    setupMockContext([createMockPilot({ callsign: 'DAL42', name: 'Jane Smith' })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('DAL42')).toBeInTheDocument();
-    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-  });
-
-  it('should display pilot flight data', () => {
-    setupMockContext([createMockPilot({
-      transponder: '7700',
-      heading: 180,
-      altitude: 38000,
-      groundspeed: 480,
-    })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('7700')).toBeInTheDocument();
-    expect(screen.getByText('180°')).toBeInTheDocument();
-    expect(screen.getByText('38,000 ft')).toBeInTheDocument();
-    expect(screen.getByText('480 kts')).toBeInTheDocument();
-  });
-
-  it('should display pilot position', () => {
-    setupMockContext([createMockPilot({ latitude: 48.8566, longitude: 2.3522 })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('48.8566, 2.3522')).toBeInTheDocument();
-  });
-
-  it('should display pilot rating using long name', () => {
-    setupMockContext([createMockPilot({ pilot_rating: 15 })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('Airline Transport Pilot License')).toBeInTheDocument();
-  });
-
-  it('should display server info', () => {
-    setupMockContext([createMockPilot({
-      server: 'USA-EAST',
-    })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('USA-EAST')).toBeInTheDocument();
-  });
-
-  it('should not display flight plan section', () => {
-    setupMockContext([createMockPilot({
-      flight_plan: {
-        flight_rules: 'I',
-        aircraft: 'B737/M',
-        aircraft_short: 'B737',
-        departure: 'KJFK',
-        arrival: 'KLAX',
-        alternate: 'KSAN',
-        cruise_tas: '450',
-        altitude: '35000',
-        deptime: '1200',
-        enroute_time: '0500',
-        fuel_time: '0600',
-        remarks: '',
-        route: 'DCT',
-      },
-    })]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.queryByText('Flight Plan')).not.toBeInTheDocument();
-    expect(screen.queryByText('B737/M')).not.toBeInTheDocument();
-    expect(screen.queryByText('KJFK → KLAX')).not.toBeInTheDocument();
-  });
-
-  it('should render card labels for pilot data', () => {
-    setupMockContext([createMockPilot()]);
-
-    renderWithProviders(<PilotList />);
-
-    expect(screen.getByText('Pilot')).toBeInTheDocument();
-    expect(screen.getByText('Altitude')).toBeInTheDocument();
-    expect(screen.getByText('Speed')).toBeInTheDocument();
-  });
-
   it('should render multiple pilots', () => {
     const pilots = [
       createMockPilot({ callsign: 'AAL100', name: 'Alice' }),
@@ -201,5 +114,37 @@ describe('PilotList', () => {
 
     const card = screen.getByText('DAL42').closest('.pilot-card') as HTMLElement;
     expect(card).not.toHaveClass('pilot-card-highlighted');
+  });
+
+  it('should have accessible role and label on pilot cards', () => {
+    setupMockContext([createMockPilot({ callsign: 'DAL42' })]);
+
+    renderWithProviders(<PilotList />);
+
+    const card = screen.getByRole('button', { name: 'Pilot DAL42' });
+    expect(card).toBeInTheDocument();
+    expect(card).toHaveAttribute('tabindex', '0');
+  });
+
+  it('should call setHighlightedPilot when Enter is pressed on a pilot card', () => {
+    const { setHighlightedPilot } = setupMockContext([createMockPilot({ callsign: 'DAL42' })]);
+
+    renderWithProviders(<PilotList />);
+
+    const card = screen.getByRole('button', { name: 'Pilot DAL42' });
+    fireEvent.keyDown(card, { key: 'Enter' });
+
+    expect(setHighlightedPilot).toHaveBeenCalledWith('DAL42');
+  });
+
+  it('should call setHighlightedPilot when Space is pressed on a pilot card', () => {
+    const { setHighlightedPilot } = setupMockContext([createMockPilot({ callsign: 'DAL42' })]);
+
+    renderWithProviders(<PilotList />);
+
+    const card = screen.getByRole('button', { name: 'Pilot DAL42' });
+    fireEvent.keyDown(card, { key: ' ' });
+
+    expect(setHighlightedPilot).toHaveBeenCalledWith('DAL42');
   });
 });
